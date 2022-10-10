@@ -1,9 +1,6 @@
 package com.example.tictactoeassignment.screens
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
@@ -23,21 +20,36 @@ import java.util.*
 fun GameRoomScreen(viewModel: GameRoomViewModel){
 
     val listOfGameRoom = viewModel.roomList.collectAsState().value
-    LazyColumn(modifier = Modifier.fillMaxHeight().padding(12.dp)) {
-        items(listOfGameRoom){gameRoom->
-           RoomCard(gameRoom = gameRoom)
+    Column(Modifier.fillMaxSize().padding(12.dp)) {
+        LazyColumn(modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()) {
+            items(listOfGameRoom){gameRoom->
+                RoomCard(gameRoom = gameRoom,viewModel)
+            }
+        }
+
+        Button(onClick = {
+          viewModel.createNewGameRoom()
+        }, modifier = Modifier.fillMaxWidth()) {
+            Text(text = "Create Room")
         }
     }
 }
 
 @Composable
-fun RoomCard(gameRoom : GameRoom){
-    Text(text = "Room Name : ${gameRoom.roomName}" )
+fun RoomCard(gameRoom : GameRoom,viewModel: GameRoomViewModel){
+    Text(text = "Room Name : ${gameRoom.isTheCurrentUserAlredyJoined}" )
     Spacer(modifier = Modifier.height(10.dp))
     Text(text = "Players : ${gameRoom.currentPlayers}/2" )
     Spacer(modifier = Modifier.height(10.dp))
     Button(onClick = {
-
+//        viewModel.addPlayerToGameRoom(
+//            Player(
+//                "7980511342","JDB","7980511342",true
+//            ),
+//            gameRoom._roomId
+//        )
     }, modifier = Modifier.alpha(if(gameRoom.currentPlayers < 2) 1f else 0.5f), enabled = gameRoom.currentPlayers < 2) {
         Text("Join")
     }
