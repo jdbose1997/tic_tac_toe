@@ -17,19 +17,20 @@ class GameRoomRepositoryImpl @Inject constructor(
 
     override fun fetchGameRooms(): Flow<List<GameRoom>> {
         val gameRoomList = ArrayList<GameRoom>()
-        gameRoomList.clear()
        return callbackFlow {
             fireStoreCollection.collection("game_room").addSnapshotListener { value, error ->
+                gameRoomList.clear()
                 if(error != null){
                     cancel(error.message.toString())
                 }
                 if(value != null &&  value.documents.isNotEmpty()){
                     value.documents.forEach {
-                        val gameRoom = it.toObject(GameRoom::class.java)
-                        gameRoom?.let {
-                            gameRoomList.add(gameRoom)
+                        val gameRooms = it.toObject(GameRoom::class.java)
+                        gameRooms?.let {
+                            gameRoomList.add(gameRooms)
                         }
                     }
+                    Log.i("JAPAN", "fetchGameRooms: ${gameRoomList.size}")
                     trySend(gameRoomList)
                 }
             }
