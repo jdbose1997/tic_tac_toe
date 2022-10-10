@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.model.GameRoom
 import com.example.data.model.Player
 import com.example.data.model.repository.GameRoomRepository
 import com.example.data.model.repository.GameRoomRepositoryImpl
@@ -19,40 +20,26 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.Random
+import java.util.UUID
 import javax.inject.Inject
 
 @SuppressLint("MutableCollectionMutableState")
 class GameRoomViewModel @Inject constructor(
-
 ): ViewModel() {
     private val gameRepository : GameRoomRepository = GameRoomRepositoryImpl(Firebase.firestore)
-    var roomList by mutableStateOf(ArrayList<Player>())
+    var roomList : MutableStateFlow<List<GameRoom>> = MutableStateFlow(emptyList())
+
 
     init {
-        fetchRoomList()
-        addPlayerToGameRoom(
-            Player(
-                "s",
-                "6667777",
-                "asasasasa",
-                false
-            ),
-"123456"
-        )
+        fetchAllGameRooms()
     }
 
     private fun fetchRoomList(){
         getUserAsModel().onEach {
-            Log.i(TAG, "DATA: ${it}")
-            roomList.apply {
-                clear()
-                addAll(it)
-            }
+
         }.launchIn(viewModelScope)
     }
 
@@ -82,21 +69,31 @@ class GameRoomViewModel @Inject constructor(
 
     }
 
+    private fun fetchAllGameRooms(){
+        gameRepository.fetchGameRooms().onEach {
+            roomList.emit(ArrayList(it))
+        }.launchIn(viewModelScope)
+    }
 
-    private fun addPlayerToGameRoom(
+
+     fun addPlayerToGameRoom(
         player: Player,roomId : String
     ){
+
         gameRepository.checkIfUserCanJoinRoom(roomId = roomId).onEach {
-          if(it){
-              gameRepository.fetchGameRoomUsingId(roomdId = roomId).onEach {gameRoom->
-                  gameRoom.apply {
-                      currentPlayers += 1
-                      players.add(player)
-                  }
-                  gameRepository.joinGameRoom(gameRoom=gameRoom, player = player).onEach {isSaved->
-                  }.launchIn(viewModelScope)
-              }.launchIn(viewModelScope)
-          }
+            Log.i(TAG, "addPlayerToGameRoom: ${it}")
+            if(it){
+                gameRepository.fetchGameRoomUsingId(roomId).onEach {
+                    it.apply {
+                        currentPlayers += 1
+                        players.add(player)
+                        gameRepository.joinGameRoom(gameRoom = this,roomId).onEach {
+                            Log.i(TAG, "User joined room: ${it}")
+                        }.launchIn(viewModelScope)
+                    }
+                }.launchIn(viewModelScope)
+            }
+
         }.launchIn(viewModelScope)
     }
 
