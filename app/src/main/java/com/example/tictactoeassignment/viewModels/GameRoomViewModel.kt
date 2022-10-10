@@ -34,7 +34,7 @@ class GameRoomViewModel @Inject constructor(
 
 
     init {
-        fetchAllGameRooms()
+        fetchAllGameRooms("")
     }
 
     private fun fetchRoomList(){
@@ -69,9 +69,10 @@ class GameRoomViewModel @Inject constructor(
 
     }
 
-    private fun fetchAllGameRooms(){
-        gameRepository.fetchGameRooms().onEach {
-            roomList.emit(ArrayList(it))
+    private fun fetchAllGameRooms(playerId : String){
+        gameRepository.fetchGameRooms(playerId).onEach {gameRoomList->
+            Log.i(TAG, "fetchAllGameRooms: ${gameRoomList.size}")
+            roomList.emit(ArrayList(gameRoomList))
         }.launchIn(viewModelScope)
     }
 
@@ -83,11 +84,13 @@ class GameRoomViewModel @Inject constructor(
             if(it){
                 gameRepository.fetchGameRoomUsingId(roomId).onEach {
                     it.apply {
-                        currentPlayers += 1
-                        players.add(player)
-                        gameRepository.joinGameRoom(gameRoom = this,roomId).onEach {
+                        if(!playerAllReadyJoined(players,player._id)){
+                            currentPlayers += 1
+                            players.add(player)
+                            gameRepository.joinGameRoom(gameRoom = this,roomId).onEach {
 
-                        }.launchIn(viewModelScope)
+                            }.launchIn(viewModelScope)
+                        }
                     }
                 }.launchIn(viewModelScope)
             }
@@ -95,5 +98,31 @@ class GameRoomViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+
+    fun createNewGameRoom(){
+        Log.i(TAG, "createNewGameRoom: clicked")
+        val db = Firebase.firestore
+        val roomId = UUID.randomUUID().toString()
+        db.collection("game_room").document(roomId)
+            .set(GameRoom(
+                _roomId=roomId,
+                roomName = "TEST ${Random().nextInt()}",
+                currentPlayers = 0,
+                players = arrayListOf()
+            ))
+            .addOnSuccessListener { documentReference ->
+                 Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference}")
+            }
+            .addOnFailureListener { e ->
+                 Log.w(TAG, "Error adding document", e)
+            }
+    }
+
+    private fun playerAllReadyJoined(player : List<Player>,currentPlayerId : String) : Boolean{
+        player.forEach {
+            if(it._id == currentPlayerId) return true
+        }
+        return false
+    }
 
 }
