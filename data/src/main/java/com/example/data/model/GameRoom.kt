@@ -4,7 +4,8 @@ data class GameRoom(
     val _roomId : String,
     val roomName : String,
     var currentPlayers : Int,
-    val players : ArrayList<Player>
+    val players : ArrayList<Player>,
+    var isTheCurrentUserAlredyJoined : Boolean = false
 ){
     constructor() : this(
         "",
