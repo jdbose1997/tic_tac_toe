@@ -72,22 +72,7 @@ class LoginViewModel : ViewModel() {
             }
     }
 
-    fun createNewGameRoom(){
-        val db = Firebase.firestore
-        db.collection("game_room").document("second_room")
-            .set(GameRoom(
-                _roomId = "12345",
-                "TEST",
-                0,
-                arrayListOf()
-            ))
-            .addOnSuccessListener { documentReference ->
-               // Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference}")
-            }
-            .addOnFailureListener { e ->
-              //  Log.w(TAG, "Error adding document", e)
-            }
-    }
+
 
 
 }
