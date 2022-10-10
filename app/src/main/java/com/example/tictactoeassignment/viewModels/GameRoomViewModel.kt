@@ -70,7 +70,7 @@ class GameRoomViewModel @Inject constructor(
     }
 
     private fun fetchAllGameRooms(playerId : String){
-        gameRepository.fetchGameRooms(playerId).onEach {gameRoomList->
+        gameRepository.fetchGameRooms().onEach {gameRoomList->
             Log.i(TAG, "fetchAllGameRooms: ${gameRoomList.size}")
             roomList.emit(ArrayList(gameRoomList))
         }.launchIn(viewModelScope)
@@ -100,7 +100,6 @@ class GameRoomViewModel @Inject constructor(
 
 
     fun createNewGameRoom(){
-        Log.i(TAG, "createNewGameRoom: clicked")
         val db = Firebase.firestore
         val roomId = UUID.randomUUID().toString()
         db.collection("game_room").document(roomId)
