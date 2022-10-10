@@ -1,5 +1,6 @@
 package com.example.tictactoeassignment.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -10,10 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.example.tictactoeassignment.navigation.Screen
 import com.example.tictactoeassignment.viewModels.LoginViewModel
 
 @Composable
-fun LoginScreen(viewModel : LoginViewModel){
+fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 
     var userNameField by remember {
         mutableStateOf("")
@@ -21,6 +25,14 @@ fun LoginScreen(viewModel : LoginViewModel){
     var mobileNumberField by remember {
       mutableStateOf("")
     }
+
+    val navigateToUi =  viewModel.navigateToUi.collectAsState(initial = null).value
+
+
+    if(navigateToUi?.route == Screen.GameRoomScreen.route){
+        navController.navigate(navigateToUi.route)
+    }
+
     Column(Modifier.fillMaxSize(),
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally) {
@@ -49,11 +61,12 @@ fun LoginScreen(viewModel : LoginViewModel){
             Text(text = "Login")
         }
     }
+
 }
 
 
 @Preview
 @Composable
 fun preview(){
-    LoginScreen(LoginViewModel())
+    LoginScreen(LoginViewModel(), rememberNavController())
 }
