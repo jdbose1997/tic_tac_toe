@@ -79,16 +79,14 @@ class GameRoomViewModel @Inject constructor(
      fun addPlayerToGameRoom(
         player: Player,roomId : String
     ){
-
         gameRepository.checkIfUserCanJoinRoom(roomId = roomId).onEach {
-            Log.i(TAG, "addPlayerToGameRoom: ${it}")
             if(it){
                 gameRepository.fetchGameRoomUsingId(roomId).onEach {
                     it.apply {
                         currentPlayers += 1
                         players.add(player)
                         gameRepository.joinGameRoom(gameRoom = this,roomId).onEach {
-                            Log.i(TAG, "User joined room: ${it}")
+
                         }.launchIn(viewModelScope)
                     }
                 }.launchIn(viewModelScope)

@@ -13,7 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.tictactoeassignment.Constant.TAG
+import com.example.tictactoeassignment.navigation.SetupNavGraph
 import com.example.tictactoeassignment.screens.GameBoard
 import com.example.tictactoeassignment.screens.GameRoomScreen
 import com.example.tictactoeassignment.screens.LoginScreen
@@ -30,15 +33,16 @@ class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private val loginViewModel by viewModels<LoginViewModel>()
     private val gameRoomViewModel by viewModels<GameRoomViewModel>()
+    private lateinit var navHostController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
         auth = Firebase.auth
         setContent {
             TicTacToeAssignmentTheme {
+                navHostController = rememberNavController()
+                SetupNavGraph(navController = navHostController, loginViewModel = loginViewModel, gameRoomViewModel = gameRoomViewModel)
 
-                GameRoomScreen(viewModel = gameRoomViewModel)
-               // LoginScreen(viewModel = loginViewModel)
             }
         }
     }
