@@ -33,6 +33,7 @@ class GameRoomRepositoryImpl @Inject constructor(
                     trySend(gameRoomList)
                 }
             }
+           awaitClose{close()}
         }
     }
 
@@ -40,7 +41,7 @@ class GameRoomRepositoryImpl @Inject constructor(
      return callbackFlow {
             fireStoreCollection.collection("game_room").document(roomdId).addSnapshotListener { value, error ->
                 if(error != null){
-                    cancel(error.message.toString())
+                    close()
                 }
 
                 if(value != null && value.exists()){
@@ -48,26 +49,27 @@ class GameRoomRepositoryImpl @Inject constructor(
                     gameRoom?.let {
                         trySend(it)
                     } ?: kotlin.run {
-                        cancel("No room found with this id")
+
                     }
+                    close()
                 }
             }
             awaitClose { close() }
         }
     }
 
-    override fun joinGameRoom(gameRoom: GameRoom, player: Player): Flow<Boolean> {
-        Log.i("JAPAN", "joinGameRoom: ${gameRoom}")
+    override fun joinGameRoom(gameRoom: GameRoom,roomId : String): Flow<Boolean> {
       return  callbackFlow {
             fireStoreCollection.collection("game_room")
-                .document("123456")
+                .document(roomId)
                 .set(
                    gameRoom
                 ).addOnSuccessListener {
                     trySend(true)
+                    close()
                 }.addOnCanceledListener {
                     trySend(false)
-                    cancel()
+                    close()
                 }
           awaitClose{
               close()
@@ -81,7 +83,7 @@ class GameRoomRepositoryImpl @Inject constructor(
             fireStoreCollection.collection("game_room").document(roomId).addSnapshotListener { value, error ->
                 if(error != null){
                     trySend(false)
-                    cancel(error.message.toString())
+                    close()
                 }
                 if(value != null && value.exists()){
                     val roomObject = value.toObject(GameRoom::class.java)
@@ -91,8 +93,8 @@ class GameRoomRepositoryImpl @Inject constructor(
                         trySend(true)
                     }else{
                         trySend(false)
-                        cancel("Room is not empty")
                     }
+                    close()
                 }
             }
            awaitClose { close() }
