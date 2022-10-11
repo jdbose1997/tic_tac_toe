@@ -2,10 +2,7 @@ package com.example.data.model.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.data.model.repository.GameRoomRepository
-import com.example.data.model.repository.GameRoomRepositoryImpl
-import com.example.data.model.repository.PlayerRepository
-import com.example.data.model.repository.PlayerRepositoryImpl
+import com.example.data.model.repository.*
 import com.example.db.PlayerDao
 import com.example.db.TicTacToeGameDatabase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -42,6 +39,10 @@ object Module {
     @Provides
     @Singleton
     fun provideGameRoomRepository(firestore: FirebaseFirestore) : GameRoomRepository = GameRoomRepositoryImpl(firestore)
+
+    @Provides
+    @Singleton
+    fun provideGameRepository(firestore: FirebaseFirestore) : GameRepository = GameRepositoryImpl(firestore)
 
     @Provides
     @Singleton
