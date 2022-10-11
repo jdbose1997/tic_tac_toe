@@ -1,9 +1,12 @@
 package com.example.tictactoeassignment.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.tictactoeassignment.screens.GameLobbyScreen
 import com.example.tictactoeassignment.screens.GameRoomScreen
 import com.example.tictactoeassignment.screens.GameScreen
@@ -34,15 +37,23 @@ fun SetupNavGraph(navController : NavHostController,
             }
 
             composable(
-                route = Screen.GameScreen.route
+                route = Screen.GameScreen.route,
+                arguments = listOf(navArgument("game_session_id"){
+                    type = NavType.StringType
+                })
             ){
-                GameScreen(viewModel = gameViewModel)
+                val sessionId = it.arguments?.getString("game_session_id").toString()
+                GameScreen(viewModel = gameViewModel,sessionId=sessionId)
             }
 
             composable(
-                route = Screen.GameLobbyScreen.route
+                route = Screen.GameLobbyScreen.route,
+                arguments = listOf(navArgument("room_id"){
+                    type = NavType.StringType
+                })
             ){
-                GameLobbyScreen(viewModel = gameLobbyViewModel, navHostController = navController)
+                val roomId = it.arguments?.getString("room_id").toString()
+                GameLobbyScreen(viewModel = gameLobbyViewModel, navHostController = navController,roomId=roomId)
             }
         }
 }
