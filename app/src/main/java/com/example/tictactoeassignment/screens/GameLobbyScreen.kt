@@ -16,9 +16,13 @@ import com.example.tictactoeassignment.navigation.Screen
 import com.example.tictactoeassignment.viewModels.GameLobbyViewModel
 
 @Composable
-fun GameLobbyScreen(navHostController: NavHostController,viewModel : GameLobbyViewModel){
+fun GameLobbyScreen(navHostController: NavHostController,viewModel : GameLobbyViewModel,roomId : String){
 
     val timerUi = viewModel.gameStartTimer.collectAsState().value
+    viewModel.apply {
+        currentRoomId = roomId
+        gameSessionId = roomId
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
        Text(text = "Please wait")
@@ -26,7 +30,7 @@ fun GameLobbyScreen(navHostController: NavHostController,viewModel : GameLobbyVi
         Text(text = "The Game will start in ... ${timerUi}")
         Button(onClick = {
             viewModel.getPlayerDetailsFromGameRoomAndCreateGameSession()
-            navHostController.navigate(Screen.GameScreen.route)}) {
+            navHostController.navigate("game_screen/$roomId")}) {
             Text("Start")
         }
     }
