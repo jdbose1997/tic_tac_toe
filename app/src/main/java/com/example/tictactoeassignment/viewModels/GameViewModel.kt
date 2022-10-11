@@ -1,5 +1,6 @@
 package com.example.tictactoeassignment.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,7 +17,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -29,9 +30,8 @@ class GameViewModel @Inject constructor(
     private var currentTurn = BoardCellValue.NONE.name
     var state by mutableStateOf(GameState())
     var myUserId : String = ""
-    var gameSessionId : String = "test_game-715849400"
-    val userInputs : MutableSharedFlow<MutableMap<String,String>> = MutableSharedFlow()
-    var isMyMove by mutableStateOf(false)
+    var gameSessionId : String = ""
+
     private val gameRepository : GameRepository = GameRepositoryImpl(
         firestore = Firebase.firestore
     )
@@ -42,7 +42,6 @@ class GameViewModel @Inject constructor(
             delay(1000)
             gameReset()
         }
-        observeGameBoardMovements()
     }
 
     private fun getUserData(){
@@ -82,17 +81,6 @@ class GameViewModel @Inject constructor(
 
 
 
-    var boardItems: MutableMap<Int, BoardCellValue> = mutableMapOf(
-        1 to BoardCellValue.NONE,
-        2 to BoardCellValue.NONE,
-        3 to BoardCellValue.NONE,
-        4 to BoardCellValue.NONE,
-        5 to BoardCellValue.NONE,
-        6 to BoardCellValue.NONE,
-        7 to BoardCellValue.NONE,
-        8 to BoardCellValue.NONE,
-        9 to BoardCellValue.NONE,
-    )
 
 
 
@@ -106,7 +94,8 @@ class GameViewModel @Inject constructor(
                     gameSessionId,
                     boardItemsTest,
                     currentTurn,
-                    myUserId
+                    myUserId,
+                    checkForVictory(currentTurn)
 
                 )
             }
@@ -116,91 +105,69 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    private fun checkIfGameIsFinished(){
+        if(checkForVictory(BoardCellValue.CIRCLE.name)){
+            state = state.copy(
+                hintText = "Player '${BoardCellValue.CIRCLE.name}' Won",
+                currentTurn = BoardCellValue.NONE,
+                hasWon = true
+            )
+        }else  if(checkForVictory(BoardCellValue.CROSS.name)){
+            state = state.copy(
+                hintText = "Player '${BoardCellValue.CROSS.name}' Won",
+                currentTurn = BoardCellValue.NONE,
+                hasWon = true
+            )
+        }else if(hasBoardFull()){
+            state = state.copy(
+                hintText = "Game Draw",
+                drawCount = state.drawCount + 1
+            )
+        }
+    }
+
     private fun gameReset() {
         gameRepository.updateGamePlayData(
             gameSessionId,
             boardItemsReset,
             currentTurn,
-            myUserId
+            myUserId,
+            hasWon = false
         )
+        state = state.copy(victoryType = VictoryType.NONE)
     }
 
-    private fun addValueToBoard(cellNo: String) {
-        if (boardItemsTest[cellNo] != BoardCellValue.NONE.name) {
-            return
-        }
-        if (state.currentTurn == BoardCellValue.CIRCLE) {
-            if (checkForVictory(BoardCellValue.CIRCLE)) {
-                state = state.copy(
-                    hintText = "Player 'O' Won",
-                    playerCircleCount = state.playerCircleCount + 1,
-                    currentTurn = BoardCellValue.NONE,
-                    hasWon = true
-                )
-            } else if (hasBoardFull()) {
-                state = state.copy(
-                    hintText = "Game Draw",
-                    drawCount = state.drawCount + 1
-                )
-            } else {
-                state = state.copy(
-                    hintText = "Player 'X' turn",
-                    currentTurn = BoardCellValue.CROSS
-                )
-            }
-        } else if (state.currentTurn == BoardCellValue.CROSS) {
-            if (checkForVictory(BoardCellValue.CROSS)) {
-                state = state.copy(
-                    hintText = "Player 'X' Won",
-                    playerCrossCount = state.playerCrossCount + 1,
-                    currentTurn = BoardCellValue.NONE,
-                    hasWon = true
-                )
-            } else if (hasBoardFull()) {
-                state = state.copy(
-                    hintText = "Game Draw",
-                    drawCount = state.drawCount + 1
-                )
-            } else {
-                state = state.copy(
-                    hintText = "Player 'O' turn",
-                    currentTurn = BoardCellValue.CIRCLE
-                )
-            }
-        }
-    }
-
-    private fun checkForVictory(boardValue: BoardCellValue): Boolean {
+    private fun checkForVictory(boardValue: String): Boolean {
         when {
-            boardItems[1] == boardValue && boardItems[2] == boardValue && boardItems[3] == boardValue -> {
+            boardItemsTest["1"] == boardValue && boardItemsTest["2"] == boardValue && boardItemsTest["3"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL1)
                 return true
             }
-            boardItems[4] == boardValue && boardItems[5] == boardValue && boardItems[6] == boardValue -> {
+            boardItemsTest["4"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["6"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL2)
                 return true
             }
-            boardItems[7] == boardValue && boardItems[8] == boardValue && boardItems[9] == boardValue -> {
+            boardItemsTest["7"] == boardValue && boardItemsTest["8"] == boardValue && boardItemsTest["9"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL3)
                 return true
             }
-            boardItems[1] == boardValue && boardItems[4] == boardValue && boardItems[7] == boardValue -> {
+            boardItemsTest["1"] == boardValue && boardItemsTest["4"] == boardValue && boardItemsTest["7"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL1)
                 return true
             }
-            boardItems[2] == boardValue && boardItems[5] == boardValue && boardItems[8] == boardValue -> {
+            boardItemsTest["2"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["8"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL2)
                 return true
             }
-            boardItems[3] == boardValue && boardItems[6] == boardValue && boardItems[9] == boardValue -> {
+            boardItemsTest["3"] == boardValue && boardItemsTest["6"] == boardValue && boardItemsTest["9"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL3)
                 return true
             }
-            boardItems[1] == boardValue && boardItems[5] == boardValue && boardItems[9] == boardValue -> {
+            boardItemsTest["1"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["9"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.DIAGONAL1)
                 return true
             }
-            boardItems[3] == boardValue && boardItems[5] == boardValue && boardItems[7] == boardValue -> {
+            boardItemsTest["3"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["7"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.DIAGONAL2)
                 return true
             }
@@ -209,26 +176,26 @@ class GameViewModel @Inject constructor(
     }
 
     private fun hasBoardFull(): Boolean {
-        if (boardItems.containsValue(BoardCellValue.NONE)) return false
+        if (boardItemsTest.containsValue(BoardCellValue.NONE.name)) return false
         return true
     }
 
 
-    private fun observeGameBoardMovements(){
+     fun observeGameBoardMovements(){
         gameRepository.observeOtherPlayerMoves(gameSessionId).onEach {
+            boardItemsTest = it.playerMoves
+            checkIfGameIsFinished()
             currentTurn = it.currentTurn
             switchCurrentTurn()
-            isMyMove = it.lastPlayerId != myUserId
-            boardItemsTest = it.playerMoves
-            userInputs.emit(HashMap(it.playerMoves))
+            state = state.copy(hasWon = it.hasWon,isCurrentPlayerMove = it.lastPlayerId != myUserId, userInputs = it.playerMoves)
         }.launchIn(viewModelScope)
     }
 
     private fun switchCurrentTurn(){
-        if(currentTurn == BoardCellValue.CROSS.name){
-            currentTurn = BoardCellValue.CIRCLE.name
+        currentTurn = if(currentTurn == BoardCellValue.CROSS.name){
+            BoardCellValue.CIRCLE.name
         }else{
-            currentTurn = BoardCellValue.CROSS.name
+            BoardCellValue.CROSS.name
         }
     }
 
