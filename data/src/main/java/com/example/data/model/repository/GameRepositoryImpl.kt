@@ -68,10 +68,6 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override fun joinGame(gameSession: GameSession, sessionId: String, playerId: String) {
-        gameSession.apply {
-            val isThisUserFirstPlayer = this.firstPlayerId == playerId
-            if(isThisUserFirstPlayer) hasFirstUserJoined = true else hasSecondUserJoined = true
-        }
         firestore.collection("game_session").document(sessionId).set(
             gameSession
         ).addOnSuccessListener {

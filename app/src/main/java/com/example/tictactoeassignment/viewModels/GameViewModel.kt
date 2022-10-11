@@ -1,12 +1,10 @@
 package com.example.tictactoeassignment.viewModels
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.model.GameSession
 import com.example.data.model.repository.GameRepository
 import com.example.data.model.repository.GameRepositoryImpl
 import com.example.data.model.repository.PlayerRepository
@@ -17,7 +15,11 @@ import com.example.domain.VictoryType
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,6 +38,11 @@ class GameViewModel @Inject constructor(
 
     init {
         getUserData()
+        viewModelScope.launch {
+            delay(1000)
+            gameReset()
+        }
+        observeGameBoardMovements()
     }
 
     private fun getUserData(){
@@ -72,19 +79,8 @@ class GameViewModel @Inject constructor(
         "9" to BoardCellValue.NONE.name
     )
 
-    init {
-    //    initBoard()
-        observeGameBoardMovements()
-    }
 
-    private fun initBoard(){
-        gameRepository.updateGamePlayData(
-            gameSessionId,
-            GameSession(
-                playerMoves = boardItemsReset,"X",""
-            )
-        )
-    }
+
 
     var boardItems: MutableMap<Int, BoardCellValue> = mutableMapOf(
         1 to BoardCellValue.NONE,
@@ -108,9 +104,10 @@ class GameViewModel @Inject constructor(
                 boardItemsTest[action.cellNo] = currentTurn
                 gameRepository.updateGamePlayData(
                     gameSessionId,
-                    GameSession(
-                        playerMoves = boardItemsTest,currentTurn,myUserId
-                    )
+                    boardItemsTest,
+                    currentTurn,
+                    myUserId
+
                 )
             }
             PlayerAction.GameOver -> {
@@ -120,11 +117,12 @@ class GameViewModel @Inject constructor(
     }
 
     private fun gameReset() {
-       gameRepository.updateGamePlayData(
-           gameSessionId, GameSession(
-               playerMoves = boardItemsReset,currentTurn,""
-           )
-       )
+        gameRepository.updateGamePlayData(
+            gameSessionId,
+            boardItemsReset,
+            currentTurn,
+            myUserId
+        )
     }
 
     private fun addValueToBoard(cellNo: String) {
@@ -220,7 +218,7 @@ class GameViewModel @Inject constructor(
         gameRepository.observeOtherPlayerMoves(gameSessionId).onEach {
             currentTurn = it.currentTurn
             switchCurrentTurn()
-            isMyMove = it.lastPlayerMoveId != myUserId
+            isMyMove = it.lastPlayerId != myUserId
             boardItemsTest = it.playerMoves
             userInputs.emit(HashMap(it.playerMoves))
         }.launchIn(viewModelScope)
