@@ -26,12 +26,10 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
       mutableStateOf("")
     }
 
-    val navigateToUi =  viewModel.navigateToUi.collectAsState(initial = null).value
+    val navigateToUi =  viewModel.navigateToUi
 
 
-    if(navigateToUi?.route == Screen.GameRoomScreen.route){
-        navController.navigate(navigateToUi.route)
-    }
+
 
     Column(Modifier.fillMaxSize(),
     verticalArrangement = Arrangement.Center,
@@ -57,6 +55,9 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
                     userName = userNameField
                 )
             )
+            if(navigateToUi == Screen.GameScreen.route){
+                navController.navigate(navigateToUi)
+            }
         }) {
             Text(text = "Login")
         }
@@ -65,8 +66,3 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 }
 
 
-@Preview
-@Composable
-fun preview(){
-    LoginScreen(LoginViewModel(), rememberNavController())
-}

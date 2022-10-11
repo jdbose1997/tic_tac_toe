@@ -1,6 +1,10 @@
 package com.example.tictactoeassignment.viewModels
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameRoom
@@ -28,16 +32,13 @@ class LoginViewModel @Inject constructor(
 
     private val authRepository : AuthRepository = AuthRepositoryImpl(Firebase.firestore)
 
-    val navigateToUi : MutableSharedFlow<Screen> = MutableSharedFlow()
+    var navigateToUi  by mutableStateOf(Screen.SZero.route)
 
     sealed class LoginScreenAction{
         data class OnLogin(val mobileNumber : String,val userName : String) : LoginScreenAction()
         object OnOtpTyped : LoginScreenAction()
     }
 
-    init {
-        fetchPlayerData()
-    }
 
     fun savePlayerData(player: Player){
         viewModelScope.launch(Dispatchers.IO) {
@@ -45,11 +46,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun fetchPlayerData(){
-        playerRepository.getPlayerData().onEach {
-            Log.i(TAG, "fetchPlayerData: ${it}")
-        }.launchIn(viewModelScope)
-    }
+
 
     fun onAction(loginScreenAction: LoginScreenAction){
         when(loginScreenAction){
@@ -58,7 +55,7 @@ class LoginViewModel @Inject constructor(
                     if(player != null){
                         //To Game Screen
                         savePlayerData(player)
-                        navigateToUi.emit(Screen.GameRoomScreen)
+                        navigateToUi = Screen.GameScreen.route
                     }else{
                         //Create New Player
                         createNewUser(
