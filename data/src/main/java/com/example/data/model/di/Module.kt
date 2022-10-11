@@ -4,7 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import com.example.data.model.repository.GameRoomRepository
 import com.example.data.model.repository.GameRoomRepositoryImpl
-import com.example.db.AppDatabase
+import com.example.data.model.repository.PlayerRepository
+import com.example.data.model.repository.PlayerRepositoryImpl
+import com.example.db.PlayerDao
+import com.example.db.TicTacToeGameDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -20,11 +23,17 @@ import javax.inject.Singleton
 object Module {
 
     @Provides
+    fun provideAppDataBase(@ApplicationContext context: Context): TicTacToeGameDatabase {
+        return Room.databaseBuilder(
+            context.applicationContext,
+            TicTacToeGameDatabase::class.java,
+            "game_database"
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Provides
     @Singleton
-    fun providesRoomDataBase(@ApplicationContext context: Context) : AppDatabase = Room.databaseBuilder(
-        context,
-        AppDatabase::class.java, "app_database"
-    ).build()
+    fun providePlayerDao(database: TicTacToeGameDatabase) = database.playerDao()
 
     @Provides
     @Singleton
@@ -33,4 +42,8 @@ object Module {
     @Provides
     @Singleton
     fun provideGameRoomRepository(firestore: FirebaseFirestore) : GameRoomRepository = GameRoomRepositoryImpl(firestore)
+
+    @Provides
+    @Singleton
+    fun providePlayerRepository(dao: PlayerDao) : PlayerRepository = PlayerRepositoryImpl(dao)
 }
