@@ -3,7 +3,7 @@ package com.example.data.model
 data class GameSession(
     val playerMoves : MutableMap<String,String>,
     val currentTurn : String,
-    val currentPlayerId : String,
+    val lastPlayerId : String,
     val firstPlayerId : String,
     val secondPlayerId : String,
     var hasWon : Boolean = false,
