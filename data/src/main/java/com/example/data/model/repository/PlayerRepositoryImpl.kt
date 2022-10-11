@@ -1,17 +1,17 @@
 package com.example.data.model.repository
 
 import com.example.data.model.Player
-import com.example.db.AppDatabase
-import kotlinx.coroutines.flow.Flow
+import com.example.db.PlayerDao
+import com.example.db.TicTacToeGameDatabase
 import javax.inject.Inject
 
 class PlayerRepositoryImpl @Inject constructor(
-    private val db : AppDatabase
+    private val playerDao: PlayerDao
 ) : PlayerRepository {
     override suspend fun savePlayerData(player: Player) {
-        db.playerDao().addPlayerData(player)
+        playerDao.addPlayerData(player)
     }
 
-    override fun getPlayerData() = db.playerDao().getPlayerData()
+    override fun getPlayerData() = playerDao.getPlayerData()
 
 }
