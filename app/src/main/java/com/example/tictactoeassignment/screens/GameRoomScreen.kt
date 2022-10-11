@@ -10,14 +10,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.data.model.GameRoom
 import com.example.data.model.Player
+import com.example.tictactoeassignment.navigation.Screen
 import com.example.tictactoeassignment.viewModels.GameRoomViewModel
 import com.example.tictactoeassignment.viewModels.LoginViewModel
 import java.util.*
 
 @Composable
-fun GameRoomScreen(viewModel: GameRoomViewModel){
+fun GameRoomScreen(navHostController: NavHostController,viewModel: GameRoomViewModel){
 
     val listOfGameRoom = viewModel.roomList.collectAsState().value
     Column(Modifier.fillMaxSize().padding(12.dp)) {
@@ -25,7 +27,7 @@ fun GameRoomScreen(viewModel: GameRoomViewModel){
             .weight(1f)
             .fillMaxHeight()) {
             items(listOfGameRoom){gameRoom->
-                RoomCard(gameRoom = gameRoom,viewModel)
+                RoomCard(navHostController=navHostController,gameRoom = gameRoom, viewModel = viewModel)
             }
         }
 
@@ -38,20 +40,21 @@ fun GameRoomScreen(viewModel: GameRoomViewModel){
 }
 
 @Composable
-fun RoomCard(gameRoom : GameRoom,viewModel: GameRoomViewModel){
-    Text(text = "Room Name : ${gameRoom.isTheCurrentUserAlredyJoined}" )
+fun RoomCard(navHostController: NavHostController,gameRoom : GameRoom,viewModel: GameRoomViewModel){
+    Text(text = "Room Name : ${gameRoom.roomName}" )
     Spacer(modifier = Modifier.height(10.dp))
     Text(text = "Players : ${gameRoom.currentPlayers}/2" )
     Spacer(modifier = Modifier.height(10.dp))
     Button(onClick = {
-//        viewModel.addPlayerToGameRoom(
-//            Player(
-//                "7980511342","JDB","7980511342",true
-//            ),
-//            gameRoom._roomId
-//        )
-    }, modifier = Modifier.alpha(if(gameRoom.currentPlayers < 2) 1f else 0.5f), enabled = gameRoom.currentPlayers < 2) {
-        Text("Join")
+        if(gameRoom.isTheCurrentUserAlredyJoined){
+            navHostController.navigate(Screen.GameLobbyScreen.route)
+        }else{
+            viewModel.addPlayerToGameRoom(
+                gameRoom._roomId
+            )
+        }
+    }) {
+        Text(if(gameRoom.isTheCurrentUserAlredyJoined) "Play" else "Join")
     }
     Spacer(modifier = Modifier.height(10.dp))
 }
