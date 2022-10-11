@@ -20,11 +20,12 @@ class GameLobbyViewModel @Inject constructor(
 ) : ViewModel() {
     val gameStartTimer : MutableStateFlow<Int> = MutableStateFlow(5)
     private var _timer = 10
-    var roomId : String = "second_room"
+    var currentRoomId : String = ""
+    var gameSessionId : String = ""
 
     private var firstPlayerId : String = ""
     private var secondPlayerId : String = ""
-    private val gameSessionId : String = "test_game-715849400"
+
 
 
     var boardItemsReset: MutableMap<String, String> = mutableMapOf(
@@ -52,7 +53,7 @@ class GameLobbyViewModel @Inject constructor(
     }
 
      fun getPlayerDetailsFromGameRoomAndCreateGameSession(){
-        gameRoomRepository.fetchGameRoomUsingId(roomId).onEach {
+        gameRoomRepository.fetchGameRoomUsingId(currentRoomId).onEach {
             val players = it.players
             if(players.size == 2){
                 firstPlayerId = players.first()._id
