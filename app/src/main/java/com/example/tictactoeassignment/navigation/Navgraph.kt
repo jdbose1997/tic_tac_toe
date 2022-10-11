@@ -30,7 +30,7 @@ fun SetupNavGraph(navController : NavHostController,
             composable(
                 route = Screen.GameRoomScreen.route
             ){
-                GameRoomScreen(viewModel = gameRoomViewModel)
+                GameRoomScreen(viewModel = gameRoomViewModel, navHostController = navController)
             }
 
             composable(
