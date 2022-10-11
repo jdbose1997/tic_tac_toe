@@ -55,7 +55,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
                     userName = userNameField
                 )
             )
-            if(navigateToUi == Screen.GameLobbyScreen.route){
+            if(navigateToUi == Screen.GameRoomScreen.route){
                 navController.navigate(navigateToUi)
             }
         }) {
