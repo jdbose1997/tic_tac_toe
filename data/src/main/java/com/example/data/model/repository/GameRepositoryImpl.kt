@@ -32,36 +32,46 @@ class GameRepositoryImpl @Inject constructor(
         sessionId: String,
         boardMove: MutableMap<String, String>,
         currentMove: String,
-        lastPlayerId: String
+        lastPlayerId: String,
+        hasWon : Boolean
     ) {
-        firestore.collection("game_session").document(sessionId).update(
-            mutableMapOf(
-                "playerMoves" to boardMove,
-                "currentTurn" to currentMove,
-                "lastPlayerId" to lastPlayerId
-            )
-        ).addOnSuccessListener {
-        }.addOnCanceledListener {
+       try {
+           firestore.collection("game_session").document(sessionId).update(
+               mutableMapOf(
+                   "playerMoves" to boardMove,
+                   "currentTurn" to currentMove,
+                   "lastPlayerId" to lastPlayerId,
+                   "hasWon" to hasWon
+               )
+           ).addOnSuccessListener {
+           }.addOnCanceledListener {
 
-        }.addOnFailureListener {
-            Log.i("JAPAN", "addOnFailureListener: ${it}")
-        }
+           }.addOnFailureListener {
+               Log.i("JAPAN", "addOnFailureListener: ${it}")
+           }
+       }catch (e : Exception){
+           e.printStackTrace()
+       }
     }
 
 
     override fun observeOtherPlayerMoves(gameSessionId: String): Flow<GameSession> {
         return callbackFlow {
-            firestore.collection("game_session").document(gameSessionId).addSnapshotListener { value, error ->
-                if(error != null){
-                    cancel()
-                }
+            try {
+                firestore.collection("game_session").document(gameSessionId).addSnapshotListener { value, error ->
+                    if(error != null){
+                        cancel()
+                    }
 
-                if(value != null && value.exists()){
-                    val mappedBoard = value.toObject<GameSession>()
-                    mappedBoard?.let {
-                        trySend(it)
+                    if(value != null && value.exists()){
+                        val mappedBoard = value.toObject<GameSession>()
+                        mappedBoard?.let {
+                            trySend(it)
+                        }
                     }
                 }
+            }catch (e : Exception){
+                close()
             }
             awaitClose { close() }
         }
