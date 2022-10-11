@@ -12,10 +12,12 @@ import com.example.data.model.GameRoom
 import com.example.data.model.Player
 import com.example.data.model.repository.GameRoomRepository
 import com.example.data.model.repository.GameRoomRepositoryImpl
+import com.example.data.model.repository.PlayerRepository
 import com.example.tictactoeassignment.Constant.TAG
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -27,19 +29,22 @@ import java.util.UUID
 import javax.inject.Inject
 
 @SuppressLint("MutableCollectionMutableState")
+@HiltViewModel
 class GameRoomViewModel @Inject constructor(
+    private val playerRepository: PlayerRepository
 ): ViewModel() {
     private val gameRepository : GameRoomRepository = GameRoomRepositoryImpl(Firebase.firestore)
     var roomList : MutableStateFlow<List<GameRoom>> = MutableStateFlow(emptyList())
-
+    private var player : Player ?= null
 
     init {
-        fetchAllGameRooms("")
+        fetchPlayerObject()
     }
 
-    private fun fetchRoomList(){
-        getUserAsModel().onEach {
-
+    private fun fetchPlayerObject(){
+        playerRepository.getPlayerData().onEach {
+            player = it
+            fetchAllGameRooms(it._id)
         }.launchIn(viewModelScope)
     }
 
@@ -71,25 +76,31 @@ class GameRoomViewModel @Inject constructor(
 
     private fun fetchAllGameRooms(playerId : String){
         gameRepository.fetchGameRooms().onEach {gameRoomList->
-            Log.i(TAG, "fetchAllGameRooms: ${gameRoomList.size}")
-            roomList.emit(ArrayList(gameRoomList))
+            viewModelScope.launch {
+                val job = async {
+                    gameRoomList.forEach {
+                        it.isTheCurrentUserAlredyJoined = playerAllReadyJoined(it.players,playerId)
+                    }
+                    gameRoomList
+                }
+                roomList.emit(ArrayList(job.await()))
+            }
+
         }.launchIn(viewModelScope)
     }
 
 
      fun addPlayerToGameRoom(
-        player: Player,roomId : String
+        roomId : String
     ){
         gameRepository.checkIfUserCanJoinRoom(roomId = roomId).onEach {
             if(it){
                 gameRepository.fetchGameRoomUsingId(roomId).onEach {
                     it.apply {
-                        if(!playerAllReadyJoined(players,player._id)){
+                        if(player != null && !playerAllReadyJoined(players,player?._id.toString())){
                             currentPlayers += 1
-                            players.add(player)
-                            gameRepository.joinGameRoom(gameRoom = this,roomId).onEach {
-
-                            }.launchIn(viewModelScope)
+                            players.add(player!!)
+                            gameRepository.joinGameRoom(gameRoom = this,roomId).launchIn(viewModelScope)
                         }
                     }
                 }.launchIn(viewModelScope)
