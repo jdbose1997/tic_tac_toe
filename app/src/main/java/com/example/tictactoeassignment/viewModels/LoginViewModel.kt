@@ -7,16 +7,24 @@ import com.example.data.model.GameRoom
 import com.example.data.model.Player
 import com.example.data.model.repository.AuthRepository
 import com.example.data.model.repository.AuthRepositoryImpl
+import com.example.data.model.repository.PlayerRepository
 import com.example.tictactoeassignment.Constant.TAG
 import com.example.tictactoeassignment.navigation.Screen
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.util.*
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val playerRepository: PlayerRepository
+) : ViewModel() {
 
     private val authRepository : AuthRepository = AuthRepositoryImpl(Firebase.firestore)
 
@@ -28,17 +36,28 @@ class LoginViewModel : ViewModel() {
     }
 
     init {
-        //createNewGameRoom()
+        fetchPlayerData()
+    }
+
+    fun savePlayerData(player: Player){
+        viewModelScope.launch(Dispatchers.IO) {
+            playerRepository.savePlayerData(player)
+        }
+    }
+
+    fun fetchPlayerData(){
+        playerRepository.getPlayerData().onEach {
+            Log.i(TAG, "fetchPlayerData: ${it}")
+        }.launchIn(viewModelScope)
     }
 
     fun onAction(loginScreenAction: LoginScreenAction){
         when(loginScreenAction){
             is LoginScreenAction.OnLogin -> {
-
                 authRepository.onLoginIn(loginScreenAction.mobileNumber).onEach {player->
                     if(player != null){
                         //To Game Screen
-                        Log.i(TAG, "onAction:navigate")
+                        savePlayerData(player)
                         navigateToUi.emit(Screen.GameRoomScreen)
                     }else{
                         //Create New Player
