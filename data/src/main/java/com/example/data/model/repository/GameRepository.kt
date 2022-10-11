@@ -4,6 +4,8 @@ import com.example.data.model.GameSession
 import java.util.concurrent.Flow
 
 interface GameRepository {
-    fun updateGamePlayData(sessionId : String,gamePlayData : GameSession)
+    fun createGamePlaySession(sessionId : String,gamePlayData : GameSession)
+    fun updateGamePlayData(sessionId : String,boardMove : MutableMap<String,String>,currentMove : String,lastPlayerId : String)
     fun observeOtherPlayerMoves(gameSessionId : String): kotlinx.coroutines.flow.Flow<GameSession>
+    fun joinGame(gameSession: GameSession,sessionId: String,playerId : String)
 }

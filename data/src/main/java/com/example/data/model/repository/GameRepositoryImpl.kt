@@ -16,7 +16,8 @@ import kotlin.random.Random
 class GameRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : GameRepository {
-    override fun updateGamePlayData(sessionId : String,gamePlayData : GameSession) {
+    override fun createGamePlaySession(sessionId: String, gamePlayData: GameSession) {
+        Log.i("JAPAN", "data: ${gamePlayData}")
         firestore.collection("game_session").document(sessionId).set(
             gamePlayData
         ).addOnSuccessListener {
@@ -26,6 +27,27 @@ class GameRepositoryImpl @Inject constructor(
             Log.i("JAPAN", "addOnFailureListener: ${it}")
         }
     }
+
+    override fun updateGamePlayData(
+        sessionId: String,
+        boardMove: MutableMap<String, String>,
+        currentMove: String,
+        lastPlayerId: String
+    ) {
+        firestore.collection("game_session").document(sessionId).update(
+            mutableMapOf(
+                "playerMoves" to boardMove,
+                "currentTurn" to currentMove,
+                "lastPlayerId" to lastPlayerId
+            )
+        ).addOnSuccessListener {
+        }.addOnCanceledListener {
+
+        }.addOnFailureListener {
+            Log.i("JAPAN", "addOnFailureListener: ${it}")
+        }
+    }
+
 
     override fun observeOtherPlayerMoves(gameSessionId: String): Flow<GameSession> {
         return callbackFlow {
@@ -42,6 +64,21 @@ class GameRepositoryImpl @Inject constructor(
                 }
             }
             awaitClose { close() }
+        }
+    }
+
+    override fun joinGame(gameSession: GameSession, sessionId: String, playerId: String) {
+        gameSession.apply {
+            val isThisUserFirstPlayer = this.firstPlayerId == playerId
+            if(isThisUserFirstPlayer) hasFirstUserJoined = true else hasSecondUserJoined = true
+        }
+        firestore.collection("game_session").document(sessionId).set(
+            gameSession
+        ).addOnSuccessListener {
+        }.addOnCanceledListener {
+
+        }.addOnFailureListener {
+            Log.i("JAPAN", "addOnFailureListener: ${it}")
         }
     }
 }
