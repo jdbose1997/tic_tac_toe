@@ -9,25 +9,44 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameSession
 import com.example.data.model.repository.GameRepository
 import com.example.data.model.repository.GameRepositoryImpl
+import com.example.data.model.repository.PlayerRepository
 import com.example.domain.BoardCellValue
 import com.example.domain.GameState
 import com.example.domain.PlayerAction
 import com.example.domain.VictoryType
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class GameViewModel : ViewModel() {
+@HiltViewModel
+class GameViewModel @Inject constructor(
+    private val playerRepository: PlayerRepository
+) : ViewModel() {
     private var currentTurn = BoardCellValue.NONE.name
     var state by mutableStateOf(GameState())
+    var myUserId : String = ""
     var gameSessionId : String = "test_game-715849400"
     val userInputs : MutableSharedFlow<MutableMap<String,String>> = MutableSharedFlow()
+    var isMyMove by mutableStateOf(false)
     private val gameRepository : GameRepository = GameRepositoryImpl(
         firestore = Firebase.firestore
     )
+
+    init {
+        getUserData()
+    }
+
+    private fun getUserData(){
+        playerRepository.getPlayerData().onEach {
+            try {
+                myUserId = it._id
+            }catch (e : Exception){
+                e.stackTraceToString()
+            }
+        }.launchIn(viewModelScope)
+    }
 
      var boardItemsTest: MutableMap<String, String> = mutableMapOf(
         "1" to BoardCellValue.NONE.name,
@@ -62,7 +81,7 @@ class GameViewModel : ViewModel() {
         gameRepository.updateGamePlayData(
             gameSessionId,
             GameSession(
-                playerMoves = boardItemsReset,"X"
+                playerMoves = boardItemsReset,"X",""
             )
         )
     }
@@ -87,11 +106,10 @@ class GameViewModel : ViewModel() {
         when (action) {
             is PlayerAction.BoardTapped -> {
                 boardItemsTest[action.cellNo] = currentTurn
-                addValueToBoard(action.cellNo)
                 gameRepository.updateGamePlayData(
                     gameSessionId,
                     GameSession(
-                        playerMoves = boardItemsTest,currentTurn
+                        playerMoves = boardItemsTest,currentTurn,myUserId
                     )
                 )
             }
@@ -104,7 +122,7 @@ class GameViewModel : ViewModel() {
     private fun gameReset() {
        gameRepository.updateGamePlayData(
            gameSessionId, GameSession(
-               playerMoves = boardItemsReset,currentTurn
+               playerMoves = boardItemsReset,currentTurn,""
            )
        )
     }
@@ -202,6 +220,7 @@ class GameViewModel : ViewModel() {
         gameRepository.observeOtherPlayerMoves(gameSessionId).onEach {
             currentTurn = it.currentTurn
             switchCurrentTurn()
+            isMyMove = it.lastPlayerMoveId != myUserId
             boardItemsTest = it.playerMoves
             userInputs.emit(HashMap(it.playerMoves))
         }.launchIn(viewModelScope)
