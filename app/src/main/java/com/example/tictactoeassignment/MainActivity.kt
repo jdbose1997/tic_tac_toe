@@ -10,6 +10,7 @@ import com.example.tictactoeassignment.navigation.SetupNavGraph
 import com.example.tictactoeassignment.screens.GameScreen
 import com.example.tictactoeassignment.screens.LoginScreen
 import com.example.tictactoeassignment.ui.theme.TicTacToeAssignmentTheme
+import com.example.tictactoeassignment.viewModels.GameLobbyViewModel
 import com.example.tictactoeassignment.viewModels.GameRoomViewModel
 import com.example.tictactoeassignment.viewModels.GameViewModel
 import com.example.tictactoeassignment.viewModels.LoginViewModel
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
     private val loginViewModel : LoginViewModel by viewModels()
     private val gameRoomViewModel by viewModels<GameRoomViewModel>()
     private val gameViewModel by viewModels<GameViewModel>()
+    private val gameLobbyViewModel by viewModels<GameLobbyViewModel>()
     private lateinit var navHostController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,9 +35,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TicTacToeAssignmentTheme {
                 navHostController = rememberNavController()
-                SetupNavGraph(navController = navHostController, loginViewModel = loginViewModel, gameRoomViewModel = gameRoomViewModel, gameViewModel = gameViewModel)
-                //GameScreen(viewModel = gameViewModel)
-                //LoginScreen(viewModel = loginViewModel, navController = navHostController)
+                SetupNavGraph(navController = navHostController, loginViewModel = loginViewModel, gameRoomViewModel = gameRoomViewModel, gameViewModel = gameViewModel, gameLobbyViewModel = gameLobbyViewModel)
             }
         }
     }
