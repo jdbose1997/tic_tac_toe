@@ -42,7 +42,7 @@ fun SetupNavGraph(navController : NavHostController,
             composable(
                 route = Screen.GameLobbyScreen.route
             ){
-                GameLobbyScreen(viewModel = gameLobbyViewModel)
+                GameLobbyScreen(viewModel = gameLobbyViewModel, navHostController = navController)
             }
         }
 }
