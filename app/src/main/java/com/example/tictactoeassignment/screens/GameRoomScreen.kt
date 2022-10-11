@@ -47,7 +47,7 @@ fun RoomCard(navHostController: NavHostController,gameRoom : GameRoom,viewModel:
     Spacer(modifier = Modifier.height(10.dp))
     Button(onClick = {
         if(gameRoom.isTheCurrentUserAlredyJoined){
-            navHostController.navigate(Screen.GameLobbyScreen.route)
+            navHostController.navigate("game_lobby_screen"+"/${gameRoom._roomId}")
         }else{
             viewModel.addPlayerToGameRoom(
                 gameRoom._roomId
