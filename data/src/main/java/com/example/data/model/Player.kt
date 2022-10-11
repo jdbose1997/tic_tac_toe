@@ -1,7 +1,12 @@
 package com.example.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "player")
 data class Player(
-    val _id : String ,
+    @PrimaryKey(autoGenerate = false)
+    val _id : String,
     val name : String,
     val mobileNumber : String,
     val isOnline : Boolean
