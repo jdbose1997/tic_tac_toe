@@ -37,15 +37,17 @@ import com.example.domain.VictoryType
 import com.example.tictactoeassignment.ui.theme.*
 import com.example.tictactoeassignment.viewModels.GameViewModel
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GameScreen(
-    viewModel: GameViewModel
+    viewModel: GameViewModel,
+    sessionId : String
 ) {
 
     val state = viewModel.state
-    val playerInputState = viewModel.userInputs.collectAsState(mutableMapOf()).value
-    val canThisUserMove = viewModel.isMyMove
+    viewModel.gameSessionId = sessionId
+    viewModel.observeGameBoardMovements()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,10 +58,14 @@ fun GameScreen(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = if(canThisUserMove) "Your Turn" else "Opponent's Turn", fontSize = 16.sp)
+            Text(
+                text = state.hintText,
+                fontSize = 24.sp,
+                fontStyle = FontStyle.Italic
+            )
         }
         Text(
             text = "Tic Tac Toe",
@@ -87,7 +93,7 @@ fun GameScreen(
                     .aspectRatio(1f),
                 cells = GridCells.Fixed(3)
             ) {
-                playerInputState.forEach { (cellNo, boardCellValue) ->
+                state.userInputs.forEach { (cellNo, boardCellValue) ->
                     item {
                         Column(
                             modifier = Modifier
@@ -97,7 +103,7 @@ fun GameScreen(
                                     interactionSource = MutableInteractionSource(),
                                     indication = null
                                 ) {
-                                    if (canThisUserMove) {
+                                    if (state.isCurrentPlayerMove) {
                                         viewModel.onAction(
                                             PlayerAction.BoardTapped(cellNo)
                                         )
@@ -122,12 +128,7 @@ fun GameScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                AnimatedVisibility(
-                    visible = state.hasWon,
-                    enter = fadeIn(tween(2000))
-                ) {
-                    DrawVictoryLine(state = state)
-                }
+                DrawVictoryLine(state = state)
             }
         }
         Row(
@@ -135,11 +136,9 @@ fun GameScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = state.hintText,
-                fontSize = 24.sp,
-                fontStyle = FontStyle.Italic
-            )
+            if(!state.hasWon){
+                Text(text = if(state.isCurrentPlayerMove) "Your Turn" else "Opponent's Turn", fontSize = 16.sp)
+            }
             Button(
                 onClick = {
                     viewModel.onAction(
