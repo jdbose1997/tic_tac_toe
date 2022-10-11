@@ -55,7 +55,7 @@ class LoginViewModel @Inject constructor(
                     if(player != null){
                         //To Game Screen
                         savePlayerData(player)
-                        navigateToUi = Screen.GameScreen.route
+                        navigateToUi = Screen.GameLobbyScreen.route
                     }else{
                         //Create New Player
                         createNewUser(
