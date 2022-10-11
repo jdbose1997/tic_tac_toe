@@ -40,9 +40,6 @@ class GameLobbyViewModel @Inject constructor(
     )
 
 
-    init {
-        getPlayerDetailsFromGameRoomAndCreateGameSession()
-    }
 
     private fun startGameTimer(){
         flow<Int>{
@@ -54,7 +51,7 @@ class GameLobbyViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun getPlayerDetailsFromGameRoomAndCreateGameSession(){
+     fun getPlayerDetailsFromGameRoomAndCreateGameSession(){
         gameRoomRepository.fetchGameRoomUsingId(roomId).onEach {
             val players = it.players
             if(players.size == 2){
@@ -69,11 +66,11 @@ class GameLobbyViewModel @Inject constructor(
 
     private fun initGameSession() {
         val currentPlayerId =  if(Random.nextBoolean()) firstPlayerId else secondPlayerId
-        gameRepository.updateGamePlayData(
+        gameRepository.createGamePlaySession(
             gameSessionId, GameSession(
                playerMoves = boardItemsReset,
                 currentTurn = BoardCellValue.CROSS.name,
-                currentPlayerId = currentPlayerId,
+                lastPlayerId = currentPlayerId,
                 firstPlayerId = firstPlayerId,
                 secondPlayerId = secondPlayerId
             )
