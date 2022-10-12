@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameSession
-import com.example.data.model.repository.GameRepository
-import com.example.data.model.repository.GameRoomRepository
 import com.example.domain.BoardCellValue
+import com.example.domain.useCases.GetGameRoomUsingIdUseCase
+import com.example.domain.useCases.InitNewGameBoardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -15,8 +15,8 @@ import kotlin.random.Random
 
 @HiltViewModel
 class GameLobbyViewModel @Inject constructor(
-    private val gameRepository: GameRepository,
-    private val gameRoomRepository: GameRoomRepository
+    private val initNewGameBoardUseCase: InitNewGameBoardUseCase,
+    private val getGameRoomUsingId: GetGameRoomUsingIdUseCase
 ) : ViewModel() {
     val gameStartTimer : MutableStateFlow<Int> = MutableStateFlow(5)
     private var _timer = 10
@@ -53,7 +53,7 @@ class GameLobbyViewModel @Inject constructor(
     }
 
      fun getPlayerDetailsFromGameRoomAndCreateGameSession(){
-        gameRoomRepository.fetchGameRoomUsingId(currentRoomId).onEach {
+         getGameRoomUsingId(currentRoomId).onEach {
             val players = it.players
             if(players.size == 2){
                 firstPlayerId = players.first()._id
@@ -67,7 +67,7 @@ class GameLobbyViewModel @Inject constructor(
 
     private fun initGameSession() {
         val currentPlayerId =  if(Random.nextBoolean()) firstPlayerId else secondPlayerId
-        gameRepository.createGamePlaySession(
+        initNewGameBoardUseCase(
             gameSessionId, GameSession(
                playerMoves = boardItemsReset,
                 currentTurn = BoardCellValue.CROSS.name,
@@ -76,7 +76,6 @@ class GameLobbyViewModel @Inject constructor(
                 secondPlayerId = secondPlayerId
             )
         )
-        Log.i("JAPAN", "ssession created")
         startGameTimer()
     }
 }
