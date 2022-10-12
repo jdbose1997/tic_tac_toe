@@ -43,7 +43,7 @@ fun SetupNavGraph(navController : NavHostController,
                 })
             ){
                 val sessionId = it.arguments?.getString("game_session_id").toString()
-                GameScreen(viewModel = gameViewModel,sessionId=sessionId)
+                GameScreen(viewModel = gameViewModel,sessionId=sessionId, navHostController = navController)
             }
 
             composable(
