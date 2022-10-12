@@ -29,15 +29,30 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val playerRepository: PlayerRepository
 ) : ViewModel() {
+    var verificationId : String = ""
+    var userName : String = ""
+    var mobileNumber : String = ""
 
     private val authRepository : AuthRepository = AuthRepositoryImpl(Firebase.firestore)
 
     var navigateToUi  by mutableStateOf(Screen.SZero.route)
 
     sealed class LoginScreenAction{
-        data class OnLogin(val mobileNumber : String,val userName : String) : LoginScreenAction()
-        object OnOtpTyped : LoginScreenAction()
+        object OnLogin : LoginScreenAction()
+        object OnRegister : LoginScreenAction()
+        object OnOtpSend : LoginScreenAction()
+        object WrongOtp : LoginScreenAction()
     }
+
+    enum class UserAuthState{
+        OTP_SENT,OTP_TYPED,USER_REGISTERED,LOGIN_STATE,REGISTER_USER_STATE,WRONG_OTP
+    }
+
+    data class LoginState(
+        val userAuthState: UserAuthState = UserAuthState.LOGIN_STATE
+    )
+
+    var state by mutableStateOf(LoginState())
 
 
     fun savePlayerData(player: Player){
@@ -51,27 +66,41 @@ class LoginViewModel @Inject constructor(
     fun onAction(loginScreenAction: LoginScreenAction){
         when(loginScreenAction){
             is LoginScreenAction.OnLogin -> {
-                authRepository.onLoginIn(loginScreenAction.mobileNumber).onEach {player->
+                authRepository.onLoginIn(mobileNumber).onEach {player->
                     if(player != null){
                         //To Game Screen
                         savePlayerData(player)
-                        navigateToUi = Screen.GameRoomScreen.route
+                        state = state.copy(
+                            userAuthState = UserAuthState.USER_REGISTERED
+                        )
                     }else{
-                        //Create New Player
-                        createNewUser(
-                            Player(
-                                _id = loginScreenAction.mobileNumber,
-                                name=loginScreenAction.userName,
-                                mobileNumber = loginScreenAction.mobileNumber,
-                                isOnline = true
-                            )
+                        state = state.copy(
+                            userAuthState = UserAuthState.REGISTER_USER_STATE
                         )
                     }
                 }.launchIn(viewModelScope)
 
             }
-            is LoginScreenAction.OnOtpTyped ->{
-
+            LoginScreenAction.OnOtpSend -> {
+                state = state.copy(
+                    userAuthState = UserAuthState.OTP_SENT
+                )
+            }
+            is LoginScreenAction.OnRegister -> {
+                Log.i(TAG, "onAction: REGISTER ${mobileNumber}  ${userName}")
+                createNewUser(
+                    Player(
+                        _id = mobileNumber,
+                        name=userName,
+                        mobileNumber = mobileNumber,
+                        isOnline = true
+                    )
+                )
+            }
+            LoginScreenAction.WrongOtp -> {
+                state = state.copy(
+                    userAuthState = UserAuthState.WRONG_OTP
+                )
             }
         }
     }
@@ -81,10 +110,13 @@ class LoginViewModel @Inject constructor(
         db.collection("players").document(player.mobileNumber)
             .set(player)
             .addOnSuccessListener { documentReference ->
-                Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference}")
+                state = state.copy(
+                    userAuthState = UserAuthState.USER_REGISTERED
+                )
+
             }
             .addOnFailureListener { e ->
-                Log.w(TAG, "Error adding document", e)
+
             }
     }
 
