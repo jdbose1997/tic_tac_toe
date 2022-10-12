@@ -6,18 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.model.repository.GameRepository
-import com.example.data.model.repository.GameRepositoryImpl
 import com.example.data.model.repository.PlayerRepository
 import com.example.domain.BoardCellValue
 import com.example.domain.GameState
 import com.example.domain.PlayerAction
 import com.example.domain.VictoryType
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.example.domain.useCases.GetPlayerDataUseCase
+import com.example.domain.useCases.UpdateCurrentGameBoardUseCase
+import com.example.domain.useCases.ObserveGameBoardMovementsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -25,27 +23,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
-    private val playerRepository: PlayerRepository
+    private val updateCurrentGameBoardUseCase : UpdateCurrentGameBoardUseCase,
+    private val observeGameBoardMovementsUseCase: ObserveGameBoardMovementsUseCase,
+    private val getPlayerDataUseCase: GetPlayerDataUseCase
 ) : ViewModel() {
     private var currentTurn = BoardCellValue.NONE.name
     var state by mutableStateOf(GameState())
     var myUserId : String = ""
     var gameSessionId : String = ""
 
-    private val gameRepository : GameRepository = GameRepositoryImpl(
-        firestore = Firebase.firestore
-    )
+
 
     init {
+        state = state.copy(victoryType = VictoryType.NONE)
         getUserData()
-        viewModelScope.launch {
-            delay(1000)
-            gameReset()
-        }
     }
 
     private fun getUserData(){
-        playerRepository.getPlayerData().onEach {
+        getPlayerDataUseCase().onEach {
             try {
                 myUserId = it._id
             }catch (e : Exception){
@@ -66,7 +61,7 @@ class GameViewModel @Inject constructor(
         "9" to BoardCellValue.NONE.name
     )
 
-    var boardItemsReset: MutableMap<String, String> = mutableMapOf(
+    val initialBoardValue =  mutableMapOf(
         "1" to BoardCellValue.NONE.name,
         "2" to BoardCellValue.NONE.name,
         "3" to BoardCellValue.NONE.name,
@@ -89,15 +84,12 @@ class GameViewModel @Inject constructor(
     fun onAction(action: PlayerAction) {
         when (action) {
             is PlayerAction.BoardTapped -> {
-                boardItemsTest[action.cellNo] = currentTurn
-                gameRepository.updateGamePlayData(
-                    gameSessionId,
-                    boardItemsTest,
-                    currentTurn,
-                    myUserId,
-                    checkForVictory(currentTurn)
-
-                )
+                if(boardItemsTest[action.cellNo] == BoardCellValue.NONE.name){
+                    boardItemsTest[action.cellNo] = currentTurn
+                    updateCurrentGameBoardUseCase(
+                        boardItemsTest,gameSessionId,currentTurn,myUserId,checkForVictory(boardItemsTest,currentTurn)
+                    )
+                }
             }
             PlayerAction.GameOver -> {
                 gameReset()
@@ -105,14 +97,14 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    private fun checkIfGameIsFinished(){
-        if(checkForVictory(BoardCellValue.CIRCLE.name)){
+    private fun checkIfGameIsFinished(boardMoveItems : MutableMap<String,String>){
+        if(checkForVictory(boardMoveItems,BoardCellValue.CIRCLE.name)){
             state = state.copy(
                 hintText = "Player '${BoardCellValue.CIRCLE.name}' Won",
                 currentTurn = BoardCellValue.NONE,
                 hasWon = true
             )
-        }else  if(checkForVictory(BoardCellValue.CROSS.name)){
+        }else  if(checkForVictory(boardMoveItems,BoardCellValue.CROSS.name)){
             state = state.copy(
                 hintText = "Player '${BoardCellValue.CROSS.name}' Won",
                 currentTurn = BoardCellValue.NONE,
@@ -127,47 +119,40 @@ class GameViewModel @Inject constructor(
     }
 
     private fun gameReset() {
-        gameRepository.updateGamePlayData(
-            gameSessionId,
-            boardItemsReset,
-            currentTurn,
-            myUserId,
-            hasWon = false
-        )
-        state = state.copy(victoryType = VictoryType.NONE)
+        updateCurrentGameBoardUseCase(initialBoardValue,gameSessionId,currentTurn,myUserId)
     }
 
-    private fun checkForVictory(boardValue: String): Boolean {
+    private fun checkForVictory(boardMoveItems : MutableMap<String,String>,boardValue: String): Boolean {
         when {
-            boardItemsTest["1"] == boardValue && boardItemsTest["2"] == boardValue && boardItemsTest["3"] == boardValue -> {
+            boardMoveItems["1"] == boardValue && boardMoveItems["2"] == boardValue && boardMoveItems["3"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL1)
                 return true
             }
-            boardItemsTest["4"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["6"] == boardValue -> {
+            boardMoveItems["4"] == boardValue && boardMoveItems["5"] == boardValue && boardMoveItems["6"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL2)
                 return true
             }
-            boardItemsTest["7"] == boardValue && boardItemsTest["8"] == boardValue && boardItemsTest["9"] == boardValue -> {
+            boardMoveItems["7"] == boardValue && boardMoveItems["8"] == boardValue && boardMoveItems["9"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL3)
                 return true
             }
-            boardItemsTest["1"] == boardValue && boardItemsTest["4"] == boardValue && boardItemsTest["7"] == boardValue -> {
+            boardMoveItems["1"] == boardValue && boardMoveItems["4"] == boardValue && boardMoveItems["7"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL1)
                 return true
             }
-            boardItemsTest["2"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["8"] == boardValue -> {
+            boardMoveItems["2"] == boardValue && boardMoveItems["5"] == boardValue && boardMoveItems["8"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL2)
                 return true
             }
-            boardItemsTest["3"] == boardValue && boardItemsTest["6"] == boardValue && boardItemsTest["9"] == boardValue -> {
+            boardMoveItems["3"] == boardValue && boardMoveItems["6"] == boardValue && boardMoveItems["9"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL3)
                 return true
             }
-            boardItemsTest["1"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["9"] == boardValue -> {
+            boardMoveItems["1"] == boardValue && boardMoveItems["5"] == boardValue && boardMoveItems["9"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.DIAGONAL1)
                 return true
             }
-            boardItemsTest["3"] == boardValue && boardItemsTest["5"] == boardValue && boardItemsTest["7"] == boardValue -> {
+            boardMoveItems["3"] == boardValue && boardMoveItems["5"] == boardValue && boardMoveItems["7"] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.DIAGONAL2)
                 return true
             }
@@ -182,9 +167,9 @@ class GameViewModel @Inject constructor(
 
 
      fun observeGameBoardMovements(){
-        gameRepository.observeOtherPlayerMoves(gameSessionId).onEach {
+         observeGameBoardMovementsUseCase(gameSessionId).onEach {
             boardItemsTest = it.playerMoves
-            checkIfGameIsFinished()
+            checkIfGameIsFinished(it.playerMoves)
             currentTurn = it.currentTurn
             switchCurrentTurn()
             state = state.copy(hasWon = it.hasWon,isCurrentPlayerMove = it.lastPlayerId != myUserId, userInputs = it.playerMoves)
