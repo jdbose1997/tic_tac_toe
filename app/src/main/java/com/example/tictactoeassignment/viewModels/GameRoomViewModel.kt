@@ -43,8 +43,10 @@ class GameRoomViewModel @Inject constructor(
 
     private fun fetchPlayerObject(){
         playerRepository.getPlayerData().onEach {
-            player = it
-            fetchAllGameRooms(it._id)
+            if(it != null){
+                player = it
+                fetchAllGameRooms(it._id)
+            }
         }.launchIn(viewModelScope)
     }
 
