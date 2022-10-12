@@ -18,8 +18,10 @@ enum class BoardCellValue {
     CIRCLE,
     CROSS,
     NONE ;
-    fun getRandomValue(): BoardCellValue {
-        return if(Random.nextBoolean()) CROSS else CIRCLE
+    companion object{
+        fun getRandomValue(): BoardCellValue {
+            return if(Random.nextBoolean()) CROSS else CIRCLE
+        }
     }
 }
 
