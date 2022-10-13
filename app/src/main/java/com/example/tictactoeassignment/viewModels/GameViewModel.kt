@@ -1,5 +1,6 @@
 package com.example.tictactoeassignment.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -109,7 +110,11 @@ class GameViewModel @Inject constructor(
         }else if(hasBoardFull()){
             state = state.copy(
                 hintText = "Game Draw",
-                drawCount = state.drawCount + 1
+                hasWon = false
+            )
+        }else{
+            state = state.copy(
+                victoryType = VictoryType.NONE, currentTurn = if(currentTurn == BoardCellValue.CROSS.name) BoardCellValue.CROSS else BoardCellValue.CIRCLE
             )
         }
     }
