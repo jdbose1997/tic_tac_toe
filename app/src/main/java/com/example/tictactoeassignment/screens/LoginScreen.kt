@@ -47,6 +47,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
                 navController.navigate(Screen.GameRoomScreen.route)
             }
             LoginViewModel.UserAuthState.LOGIN_STATE ->{
+                viewModel.state = viewModel.state.copy(userAuthState =  LoginViewModel.UserAuthState.LOGIN_STATE)
                 RegisterMobileNumber(viewModel,navController)
             }
             LoginViewModel.UserAuthState.REGISTER_USER_STATE -> {
