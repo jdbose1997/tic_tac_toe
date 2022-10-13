@@ -6,13 +6,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.model.RematchCall
 import com.example.domain.BoardCellValue
 import com.example.domain.GameState
 import com.example.domain.PlayerAction
 import com.example.domain.VictoryType
-import com.example.domain.useCases.GetPlayerDataUseCase
-import com.example.domain.useCases.ObserveGameBoardMovementsUseCase
-import com.example.domain.useCases.UpdateCurrentGameBoardUseCase
+import com.example.domain.useCases.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -22,12 +21,20 @@ import javax.inject.Inject
 class GameViewModel @Inject constructor(
     private val updateCurrentGameBoardUseCase : UpdateCurrentGameBoardUseCase,
     private val observeGameBoardMovementsUseCase: ObserveGameBoardMovementsUseCase,
-    private val getPlayerDataUseCase: GetPlayerDataUseCase
+    private val getPlayerDataUseCase: GetPlayerDataUseCase,
+    private val rematchUseCase: AskRematchUseCase,
+    private val observeGameRematchCallsUseCase: ObserveGameRematchUseCase,
+    private val acceptRematchUseCase: AcceptRematchUseCase,
+    private val deleteRematchUseCase: DeleteRematchUseCase
 ) : ViewModel() {
     private var currentTurn = BoardCellValue.NONE.name
+    private var rematchCall : RematchCall ?= null
+
+
     var state by mutableStateOf(GameState())
     var myUserId : String = ""
     var gameSessionId : String = ""
+
 
 
 
@@ -88,8 +95,11 @@ class GameViewModel @Inject constructor(
                     )
                 }
             }
-            PlayerAction.GameOver -> {
-                gameReset()
+            PlayerAction.AskRematch -> {
+                askForRematch()
+            }
+            PlayerAction.RematchAccept -> {
+                acceptRematchInvitation()
             }
         }
     }
@@ -119,8 +129,18 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    private fun askForRematch(){
+        val rematchCall = RematchCall(
+            playerId = myUserId,
+            askingRematch = true,
+            requestAcceptedByOtherPlayer = false
+        )
+        rematchUseCase(gameSessionId,rematchCall)
+    }
+
     private fun gameReset() {
         updateCurrentGameBoardUseCase(initialBoardValue,gameSessionId,currentTurn,myUserId)
+        deleteRematchUseCase(gameSessionId)
     }
 
     private fun checkForVictory(boardMoveItems : MutableMap<String,String>,boardValue: String): Boolean {
@@ -175,6 +195,24 @@ class GameViewModel @Inject constructor(
             switchCurrentTurn()
             state = state.copy(hasWon = it.hasWon,isCurrentPlayerMove = it.lastPlayerId != myUserId, userInputs = it.playerMoves)
         }.launchIn(viewModelScope)
+    }
+
+     fun checkForRematch() {
+        observeGameRematchCallsUseCase(gameSessionId).onEach { rematchCall ->
+            this.rematchCall = rematchCall
+            if(rematchCall.playerId == myUserId){
+                if(rematchCall.requestAcceptedByOtherPlayer){
+                    gameReset()
+                }
+            }else{
+                state = state.copy(isRematchAsking = rematchCall.askingRematch)
+            }
+        }.launchIn(viewModelScope)
+
+    }
+
+    private fun acceptRematchInvitation(){
+        acceptRematchUseCase(sessionId = gameSessionId)
     }
 
     private fun switchCurrentTurn(){
