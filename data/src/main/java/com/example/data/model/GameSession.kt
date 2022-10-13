@@ -14,3 +14,11 @@ data class GameSession(
         mutableMapOf(),"CROSS","","",""
     )
 }
+
+data class RematchCall(
+    val playerId : String,
+    val askingRematch : Boolean,
+    var requestAcceptedByOtherPlayer : Boolean
+){
+    constructor() : this("",false,false)
+}
