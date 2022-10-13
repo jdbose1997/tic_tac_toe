@@ -2,6 +2,7 @@ package com.example.data.model.repository
 
 import android.util.Log
 import com.example.data.model.GameSession
+import com.example.data.model.RematchCall
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.cancel
@@ -54,6 +55,62 @@ class GameRepositoryImpl @Inject constructor(
        }
     }
 
+    override fun askForRematch(
+        sessionId: String,
+        rematchCall: RematchCall
+    ) {
+        try {
+            firestore.collection("game_session_rematch").document("rematch_$sessionId").set(
+                rematchCall
+            ).addOnSuccessListener {
+                Log.i("JAPAN", "asked")
+            }.addOnCanceledListener {
+
+            }.addOnFailureListener {
+                Log.i("JAPAN", "addOnFailureListener: ${it}")
+            }
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+    }
+
+    override fun acceptRematch(sessionId: String) {
+        try {
+            firestore.collection("game_session_rematch").document("rematch_$sessionId").update(
+                mutableMapOf(
+                    "requestAcceptedByOtherPlayer" to true
+                ) as Map<String, Boolean>
+            ).addOnSuccessListener {
+                Log.i("JAPAN", "accepted")
+            }.addOnCanceledListener {
+
+            }.addOnFailureListener {
+                Log.i("JAPAN", "addOnFailureListener: ${it}")
+            }
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+    }
+
+    override fun deleteRematchRequest(sessionId: String) {
+        try {
+            firestore.collection("game_session_rematch").document("rematch_$sessionId").update(
+                mutableMapOf(
+                    "requestAcceptedByOtherPlayer" to false,
+                    "askingRematch" to false
+                ) as Map<String, Any>
+            ).addOnSuccessListener {
+                Log.i("JAPAN", "deleted")
+            }.addOnCanceledListener {
+
+            }.addOnFailureListener {
+                Log.i("JAPAN", "addOnFailureListener: ${it}")
+            }
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+    }
+
 
     override fun observeOtherPlayerMoves(gameSessionId: String): Flow<GameSession> {
         return callbackFlow {
@@ -65,6 +122,28 @@ class GameRepositoryImpl @Inject constructor(
 
                     if(value != null && value.exists()){
                         val mappedBoard = value.toObject<GameSession>()
+                        mappedBoard?.let {
+                            trySend(it)
+                        }
+                    }
+                }
+            }catch (e : Exception){
+                close()
+            }
+            awaitClose { close() }
+        }
+    }
+
+    override fun observeRematch(gameSessionId: String): Flow<RematchCall> {
+        return callbackFlow {
+            try {
+                firestore.collection("game_session_rematch").document("rematch_$gameSessionId").addSnapshotListener { value, error ->
+                    if(error != null){
+                        cancel()
+                    }
+
+                    if(value != null && value.exists()){
+                        val mappedBoard = value.toObject<RematchCall>()
                         mappedBoard?.let {
                             trySend(it)
                         }
