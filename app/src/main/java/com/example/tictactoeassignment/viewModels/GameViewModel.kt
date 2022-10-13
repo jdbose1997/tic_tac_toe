@@ -13,6 +13,7 @@ import com.example.domain.PlayerAction
 import com.example.domain.VictoryType
 import com.example.domain.useCases.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -120,7 +121,8 @@ class GameViewModel @Inject constructor(
         }else if(hasBoardFull()){
             state = state.copy(
                 hintText = "Game Draw",
-                hasWon = false
+                hasWon = false,
+                hasGameDrawn = true
             )
         }else{
             state = state.copy(
@@ -222,7 +224,6 @@ class GameViewModel @Inject constructor(
             BoardCellValue.CROSS.name
         }
     }
-
 
 
 }
