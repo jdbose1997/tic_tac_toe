@@ -12,7 +12,8 @@ data class GameState(
     val isCurrentPlayerMove : Boolean = false,
     val userInputs : MutableMap<String,String> = mutableMapOf(),
     val hasWon: Boolean = false,
-    val isRematchAsking : Boolean = false
+    val hasGameDrawn : Boolean = false,
+    val isRematchAsking : Boolean = false,
 )
 
 enum class BoardCellValue {
