@@ -55,11 +55,13 @@ fun GameScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = state.hintText,
-                fontSize = 24.sp,
-                fontStyle = FontStyle.Italic
-            )
+            if(state.hasWon){
+                Text(
+                    text = state.hintText,
+                    fontSize = 24.sp,
+                    fontStyle = FontStyle.Italic
+                )
+            }
         }
         Text(
             text = "Tic Tac Toe",
