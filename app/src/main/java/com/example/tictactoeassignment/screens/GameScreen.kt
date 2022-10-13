@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,7 +54,7 @@ fun GameScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if(state.hasWon){
+            if(state.hasWon || state.hasGameDrawn){
                 Text(
                     text = state.hintText,
                     fontSize = 24.sp,
@@ -64,13 +62,7 @@ fun GameScreen(
                 )
             }
             if(state.isRematchAsking){
-                Button(onClick = {
-                    viewModel.onAction(
-                        PlayerAction.RematchAccept
-                    )
-                }) {
-                    Text(text = "Accecpt Rematch")
-                }
+                ShowReMatchAlertDialog(viewModel = viewModel)
             }
         }
         Text(
@@ -145,23 +137,25 @@ fun GameScreen(
             if(!state.hasWon){
                 Text(text = if(state.isCurrentPlayerMove) "Your Turn" else "Opponent's Turn", fontSize = 16.sp)
             }
-            Button(
-                onClick = {
-                    viewModel.onAction(
-                        PlayerAction.AskRematch
+            if(state.hasWon || state.hasGameDrawn){
+                Button(
+                    onClick = {
+                        viewModel.onAction(
+                            PlayerAction.AskRematch
+                        )
+                    },
+                    shape = RoundedCornerShape(5.dp),
+                    elevation = ButtonDefaults.elevation(5.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = BlueCustom,
+                        contentColor = Color.White
                     )
-                },
-                shape = RoundedCornerShape(5.dp),
-                elevation = ButtonDefaults.elevation(5.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = BlueCustom,
-                    contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Play Again",
-                    fontSize = 16.sp
-                )
+                ) {
+                    Text(
+                        text = "Play Again",
+                        fontSize = 16.sp
+                    )
+                }
             }
 
         }
@@ -182,6 +176,53 @@ fun DrawVictoryLine(
         VictoryType.DIAGONAL1 -> WinDiagonalLine1()
         VictoryType.DIAGONAL2 -> WinDiagonalLine2()
         VictoryType.NONE -> {}
+    }
+}
+
+@Composable
+fun ShowReMatchAlertDialog(viewModel: GameViewModel){
+    val state = viewModel.state
+    val openDialog = remember { mutableStateOf(true) }
+    var text by remember { mutableStateOf("") }
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openDialog.value = false
+            },
+            title = {
+                Text(text = "Lets Play Again!")
+            },
+            text = {
+                Column {
+                    Text("Opponent is asking for a remtach! ${state.timer}")
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+            },
+            buttons = {
+                Row(
+                    modifier = Modifier.padding(all = 8.dp),
+                    horizontalArrangement =  Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        modifier = Modifier.wrapContentWidth().weight(1f),
+                        onClick = {
+                        viewModel.onAction(PlayerAction.RematchAccept)}
+                    ) {
+                        Text("Play")
+                    }
+
+                    Button(
+                        modifier = Modifier.wrapContentWidth().weight(1f),
+                        onClick = {
+
+                        }
+                    ) {
+                        Text("Dismiss")
+                    }
+                }
+            }
+        )
     }
 }
 
