@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameSession
+import com.example.data.model.repository.GameRepository
 import com.example.domain.BoardCellValue
 import com.example.domain.useCases.GetGameRoomUsingIdUseCase
 import com.example.domain.useCases.InitNewGameBoardUseCase
@@ -16,7 +17,8 @@ import kotlin.random.Random
 @HiltViewModel
 class GameLobbyViewModel @Inject constructor(
     private val initNewGameBoardUseCase: InitNewGameBoardUseCase,
-    private val getGameRoomUsingId: GetGameRoomUsingIdUseCase
+    private val getGameRoomUsingId: GetGameRoomUsingIdUseCase,
+    private val gameRepository: GameRepository
 ) : ViewModel() {
     val gameStartTimer : MutableStateFlow<Int> = MutableStateFlow(5)
     private var _timer = 10
@@ -59,23 +61,25 @@ class GameLobbyViewModel @Inject constructor(
                 firstPlayerId = players.first()._id
                 secondPlayerId = players.last()._id
                 initGameSession()
-            }else{
-                Log.i("JAPAN", "getPlayerDetailsFromGameRoomAndCreateGameSession: less players")
             }
         }.launchIn(viewModelScope)
     }
 
     private fun initGameSession() {
-        val currentPlayerId =  if(Random.nextBoolean()) firstPlayerId else secondPlayerId
-        initNewGameBoardUseCase(
-            gameSessionId, GameSession(
-               playerMoves = boardItemsReset,
-                currentTurn = BoardCellValue.CROSS.name,
-                lastPlayerId = currentPlayerId,
-                firstPlayerId = firstPlayerId,
-                secondPlayerId = secondPlayerId
-            )
-        )
-        startGameTimer()
+        gameRepository.isAnyGameSessionExistWithTheSessionId(sessionId = gameSessionId).onEach {
+
+            if(!it){
+                val currentPlayerId =  if(Random.nextBoolean()) firstPlayerId else secondPlayerId
+                initNewGameBoardUseCase(
+                    gameSessionId, GameSession(
+                        playerMoves = boardItemsReset,
+                        currentTurn = BoardCellValue.CROSS.name,
+                        lastPlayerId = currentPlayerId,
+                        firstPlayerId = firstPlayerId,
+                        secondPlayerId = secondPlayerId
+                    )
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 }
