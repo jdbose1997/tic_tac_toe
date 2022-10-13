@@ -78,7 +78,8 @@ class GameRepositoryImpl @Inject constructor(
         try {
             firestore.collection("game_session_rematch").document("rematch_$sessionId").update(
                 mutableMapOf(
-                    "requestAcceptedByOtherPlayer" to true
+                    "requestAcceptedByOtherPlayer" to true,
+                    "askingRematch" to false
                 ) as Map<String, Boolean>
             ).addOnSuccessListener {
                 Log.i("JAPAN", "accepted")
@@ -164,6 +165,22 @@ class GameRepositoryImpl @Inject constructor(
 
         }.addOnFailureListener {
             Log.i("JAPAN", "addOnFailureListener: ${it}")
+        }
+    }
+
+    override fun isAnyGameSessionExistWithTheSessionId(sessionId: String): Flow<Boolean> {
+        return callbackFlow {
+            try {
+                firestore.collection("game_session").document(sessionId).addSnapshotListener { value, error ->
+                    if(error != null){
+                        cancel()
+                    }
+                    trySend(value != null && value.exists())
+                }
+            }catch (e : Exception){
+                close()
+            }
+            awaitClose { close() }
         }
     }
 }
