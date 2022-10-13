@@ -1,24 +1,20 @@
 package com.example.tictactoeassignment.viewModels
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.model.repository.PlayerRepository
 import com.example.domain.BoardCellValue
 import com.example.domain.GameState
 import com.example.domain.PlayerAction
 import com.example.domain.VictoryType
 import com.example.domain.useCases.GetPlayerDataUseCase
-import com.example.domain.useCases.UpdateCurrentGameBoardUseCase
 import com.example.domain.useCases.ObserveGameBoardMovementsUseCase
+import com.example.domain.useCases.UpdateCurrentGameBoardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
