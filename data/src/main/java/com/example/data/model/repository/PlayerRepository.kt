@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface PlayerRepository {
     suspend fun savePlayerData(player: Player)
-    fun getPlayerData() : Flow<Player>
+    fun getPlayerData() : Flow<Player?>
 }
