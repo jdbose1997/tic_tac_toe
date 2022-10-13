@@ -1,13 +1,11 @@
 package com.example.tictactoeassignment.viewModels
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.model.GameRoom
 import com.example.data.model.Player
 import com.example.data.model.repository.AuthRepository
 import com.example.data.model.repository.AuthRepositoryImpl
@@ -18,11 +16,9 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,7 +41,7 @@ class LoginViewModel @Inject constructor(
     }
 
     enum class UserAuthState{
-        OTP_SENT,OTP_TYPED,USER_REGISTERED,LOGIN_STATE,REGISTER_USER_STATE,WRONG_OTP
+        OTP_SENT,USER_REGISTERED,LOGIN_STATE,REGISTER_USER_STATE,WRONG_OTP
     }
 
     data class LoginState(

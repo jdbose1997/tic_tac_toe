@@ -41,16 +41,13 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
     horizontalAlignment = Alignment.CenterHorizontally) {
         when(uiState.userAuthState){
             LoginViewModel.UserAuthState.OTP_SENT ->{
-                VerifyMobileNumber(viewModel, navController)
-            }
-            LoginViewModel.UserAuthState.OTP_TYPED ->{
-
+                VerifyMobileNumber(viewModel)
             }
             LoginViewModel.UserAuthState.USER_REGISTERED -> {
                 navController.navigate(Screen.GameRoomScreen.route)
             }
             LoginViewModel.UserAuthState.LOGIN_STATE ->{
-                RegisterMobileNumber(viewModel, navController)
+                RegisterMobileNumber(viewModel)
             }
             LoginViewModel.UserAuthState.REGISTER_USER_STATE -> {
                 registerMobileNumber(activity = activity, viewModel)
@@ -64,8 +61,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 }
 
 @Composable
-fun RegisterMobileNumber(viewModel: LoginViewModel, navController: NavHostController){
-
+fun RegisterMobileNumber(viewModel: LoginViewModel){
     var userNameField by remember {
         mutableStateOf("")
     }
@@ -73,7 +69,7 @@ fun RegisterMobileNumber(viewModel: LoginViewModel, navController: NavHostContro
         mutableStateOf("")
     }
 
-    val navigateToUi =  viewModel.navigateToUi
+
     Text(text = "Welcome! Please register yourself")
     Spacer(modifier = Modifier.height(10.dp))
     Text(text = "Please enter your name!", fontSize = 8.sp)
@@ -100,8 +96,7 @@ fun RegisterMobileNumber(viewModel: LoginViewModel, navController: NavHostContro
 }
 
 @Composable
-fun VerifyMobileNumber(viewModel: LoginViewModel, navController: NavHostController){
-    val uiState = viewModel.state
+fun VerifyMobileNumber(viewModel: LoginViewModel){
     val activity = LocalContext.current as Activity
     var otpField by remember {
         mutableStateOf("")
