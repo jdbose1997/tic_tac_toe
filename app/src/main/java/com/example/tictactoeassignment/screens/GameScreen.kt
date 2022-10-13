@@ -41,6 +41,7 @@ fun GameScreen(
     val state = viewModel.state
     viewModel.gameSessionId = sessionId
     viewModel.observeGameBoardMovements()
+    viewModel.checkForRematch()
 
     Column(
         modifier = Modifier
@@ -61,6 +62,15 @@ fun GameScreen(
                     fontSize = 24.sp,
                     fontStyle = FontStyle.Italic
                 )
+            }
+            if(state.isRematchAsking){
+                Button(onClick = {
+                    viewModel.onAction(
+                        PlayerAction.RematchAccept
+                    )
+                }) {
+                    Text(text = "Accecpt Rematch")
+                }
             }
         }
         Text(
@@ -138,7 +148,7 @@ fun GameScreen(
             Button(
                 onClick = {
                     viewModel.onAction(
-                        PlayerAction.GameOver
+                        PlayerAction.AskRematch
                     )
                 },
                 shape = RoundedCornerShape(5.dp),
