@@ -47,7 +47,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
                 navController.navigate(Screen.GameRoomScreen.route)
             }
             LoginViewModel.UserAuthState.LOGIN_STATE ->{
-                RegisterMobileNumber(viewModel)
+                RegisterMobileNumber(viewModel,navController)
             }
             LoginViewModel.UserAuthState.REGISTER_USER_STATE -> {
                 registerMobileNumber(activity = activity, viewModel)
@@ -61,7 +61,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 }
 
 @Composable
-fun RegisterMobileNumber(viewModel: LoginViewModel){
+fun RegisterMobileNumber(viewModel: LoginViewModel,navController: NavHostController){
     var userNameField by remember {
         mutableStateOf("")
     }
@@ -85,11 +85,12 @@ fun RegisterMobileNumber(viewModel: LoginViewModel){
     })
     Spacer(modifier = Modifier.height(10.dp))
     Button(onClick = {
-        viewModel.apply {
-            mobileNumber = mobileNumberField
-            userName = userNameField
-        }
-        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
+        navController.navigate(Screen.GameRoomScreen.route)
+//        viewModel.apply {
+//            mobileNumber = mobileNumberField
+//            userName = userNameField
+//        }
+//        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
     }) {
         Text(text = "Login")
     }
