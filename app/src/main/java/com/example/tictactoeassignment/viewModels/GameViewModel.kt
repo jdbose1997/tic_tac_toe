@@ -42,7 +42,7 @@ class GameViewModel @Inject constructor(
     private fun getUserData(){
         getPlayerDataUseCase().onEach {
             try {
-                myUserId = it._id
+                myUserId = it?._id.toString()
             }catch (e : Exception){
                 e.stackTraceToString()
             }
