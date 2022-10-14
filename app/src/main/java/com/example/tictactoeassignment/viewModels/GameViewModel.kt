@@ -25,8 +25,7 @@ class GameViewModel @Inject constructor(
     private val getPlayerDataUseCase: GetPlayerDataUseCase,
     private val rematchUseCase: AskRematchUseCase,
     private val observeGameRematchCallsUseCase: ObserveGameRematchUseCase,
-    private val acceptRematchUseCase: AcceptRematchUseCase,
-    private val deleteRematchUseCase: DeleteRematchUseCase
+    private val acceptRematchUseCase: AcceptRematchUseCase
 ) : ViewModel() {
     private var currentTurn = BoardCellValue.NONE.name
     private var rematchCall : RematchCall ?= null
@@ -126,7 +125,7 @@ class GameViewModel @Inject constructor(
             )
         }else{
             state = state.copy(
-                victoryType = VictoryType.NONE, currentTurn = if(currentTurn == BoardCellValue.CROSS.name) BoardCellValue.CROSS else BoardCellValue.CIRCLE
+                victoryType = VictoryType.NONE, currentTurn = if(currentTurn == BoardCellValue.CROSS.name) BoardCellValue.CROSS else BoardCellValue.CIRCLE, hasWon = false, hasGameDrawn = false
             )
         }
     }
@@ -142,7 +141,6 @@ class GameViewModel @Inject constructor(
 
     private fun gameReset() {
         updateCurrentGameBoardUseCase(initialBoardValue,gameSessionId,currentTurn,myUserId)
-        deleteRematchUseCase(gameSessionId)
     }
 
     private fun checkForVictory(boardMoveItems : MutableMap<String,String>,boardValue: String): Boolean {
@@ -201,7 +199,7 @@ class GameViewModel @Inject constructor(
 
      fun checkForRematch() {
         observeGameRematchCallsUseCase(gameSessionId).onEach { rematchCall ->
-            this.rematchCall = rematchCall
+            Log.i("JAPAN", "checkForRematch: ${rematchCall.requestAcceptedByOtherPlayer}")
             if(rematchCall.playerId == myUserId){
                 if(rematchCall.requestAcceptedByOtherPlayer){
                     gameReset()
