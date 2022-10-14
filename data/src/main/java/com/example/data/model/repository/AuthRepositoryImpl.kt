@@ -43,7 +43,7 @@ class AuthRepositoryImpl @Inject constructor(
                 close()
             }
         }
-    //    Log.i("JAPAN", "onLoginIn: ${player?.name}")
+
     }
 
 
