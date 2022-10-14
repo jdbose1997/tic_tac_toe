@@ -1,5 +1,10 @@
 package com.example.tictactoeassignment.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +33,7 @@ import com.example.domain.VictoryType
 import com.example.tictactoeassignment.ui.theme.*
 import com.example.tictactoeassignment.viewModels.GameViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun GameScreen(
     navHostController: NavHostController,
@@ -110,11 +115,17 @@ fun GameScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            if (boardCellValue == BoardCellValue.CIRCLE.name) {
-                                Circle()
-                            } else if (boardCellValue == BoardCellValue.CROSS.name) {
-                                Cross()
+                            AnimatedVisibility(
+                                visible = boardCellValue != BoardCellValue.NONE.name,
+                                enter = scaleIn(tween(1000))
+                            ){
+                                if (boardCellValue == BoardCellValue.CIRCLE.name) {
+                                    Circle()
+                                } else if (boardCellValue == BoardCellValue.CROSS.name) {
+                                    Cross()
+                                }
                             }
+
                         }
                     }
                 }
@@ -126,7 +137,12 @@ fun GameScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                DrawVictoryLine(state = state)
+                AnimatedVisibility(
+                    visible = state.hasWon,
+                    enter = fadeIn(tween(2000))
+                ){
+                    DrawVictoryLine(state = state)
+                }
             }
         }
         Row(
@@ -181,9 +197,7 @@ fun DrawVictoryLine(
 
 @Composable
 fun ShowReMatchAlertDialog(viewModel: GameViewModel){
-    val state = viewModel.state
     val openDialog = remember { mutableStateOf(true) }
-    var text by remember { mutableStateOf("") }
 
     if (openDialog.value) {
         AlertDialog(
@@ -195,7 +209,7 @@ fun ShowReMatchAlertDialog(viewModel: GameViewModel){
             },
             text = {
                 Column {
-                    Text("Opponent is asking for a remtach! ${state.timer}")
+                    Text("Opponent is asking for a remtach!")
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             },
