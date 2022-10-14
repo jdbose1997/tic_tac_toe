@@ -16,6 +16,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -23,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val playerRepository: PlayerRepository
+    private val playerRepository: PlayerRepository,
 ) : ViewModel() {
     var verificationId : String = ""
     var userName : String = ""
@@ -48,7 +49,7 @@ class LoginViewModel @Inject constructor(
         val userAuthState: UserAuthState = UserAuthState.LOGIN_STATE
     )
 
-    var state by mutableStateOf(LoginState())
+    var state : MutableStateFlow<LoginState> = MutableStateFlow(LoginState(UserAuthState.LOGIN_STATE))
 
 
     fun savePlayerData(player: Player){
@@ -66,11 +67,11 @@ class LoginViewModel @Inject constructor(
                     if(player != null){
                         //To Game Screen
                         savePlayerData(player)
-                        state = state.copy(
+                        state.value = state.value.copy(
                             userAuthState = UserAuthState.USER_REGISTERED
                         )
                     }else{
-                        state = state.copy(
+                        state.value = state.value.copy(
                             userAuthState = UserAuthState.REGISTER_USER_STATE
                         )
                     }
@@ -78,7 +79,7 @@ class LoginViewModel @Inject constructor(
 
             }
             LoginScreenAction.OnOtpSend -> {
-                state = state.copy(
+                state.value = state.value.copy(
                     userAuthState = UserAuthState.OTP_SENT
                 )
             }
@@ -94,7 +95,7 @@ class LoginViewModel @Inject constructor(
                 )
             }
             LoginScreenAction.WrongOtp -> {
-                state = state.copy(
+                state.value = state.value.copy(
                     userAuthState = UserAuthState.WRONG_OTP
                 )
             }
@@ -106,7 +107,7 @@ class LoginViewModel @Inject constructor(
         db.collection("players").document(player.mobileNumber)
             .set(player)
             .addOnSuccessListener { documentReference ->
-                state = state.copy(
+                state.value = state.value.copy(
                     userAuthState = UserAuthState.USER_REGISTERED
                 )
 
