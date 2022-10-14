@@ -18,7 +18,6 @@ class GameRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : GameRepository {
     override fun createGamePlaySession(sessionId: String, gamePlayData: GameSession) {
-        Log.i("JAPAN", "data: ${gamePlayData}")
         firestore.collection("game_session").document(sessionId).set(
             gamePlayData
         ).addOnSuccessListener {
@@ -63,7 +62,7 @@ class GameRepositoryImpl @Inject constructor(
             firestore.collection("game_session_rematch").document("rematch_$sessionId").set(
                 rematchCall
             ).addOnSuccessListener {
-                Log.i("JAPAN", "asked")
+
             }.addOnCanceledListener {
 
             }.addOnFailureListener {
@@ -82,7 +81,7 @@ class GameRepositoryImpl @Inject constructor(
                     "askingRematch" to false
                 ) as Map<String, Boolean>
             ).addOnSuccessListener {
-                Log.i("JAPAN", "accepted")
+                deleteRematchRequest(sessionId = sessionId)
             }.addOnCanceledListener {
 
             }.addOnFailureListener {
@@ -93,7 +92,7 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun deleteRematchRequest(sessionId: String) {
+    private fun deleteRematchRequest(sessionId: String) {
         try {
             firestore.collection("game_session_rematch").document("rematch_$sessionId").update(
                 mutableMapOf(
@@ -101,7 +100,7 @@ class GameRepositoryImpl @Inject constructor(
                     "askingRematch" to false
                 ) as Map<String, Any>
             ).addOnSuccessListener {
-                Log.i("JAPAN", "deleted")
+
             }.addOnCanceledListener {
 
             }.addOnFailureListener {

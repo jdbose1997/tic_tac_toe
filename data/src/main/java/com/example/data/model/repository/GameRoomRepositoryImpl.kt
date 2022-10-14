@@ -30,7 +30,6 @@ class GameRoomRepositoryImpl @Inject constructor(
                             gameRoomList.add(gameRooms)
                         }
                     }
-                    Log.i("JAPAN", "fetchGameRooms: ${gameRoomList.size}")
                     trySend(gameRoomList)
                 }
             }
