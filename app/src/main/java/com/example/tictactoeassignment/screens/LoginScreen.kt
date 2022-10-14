@@ -10,11 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.tictactoeassignment.Constant.TAG
 import com.example.tictactoeassignment.navigation.Screen
 import com.example.tictactoeassignment.viewModels.LoginViewModel
@@ -31,10 +29,18 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 
-    val uiState = viewModel.state
+    val uiState by viewModel.state.collectAsState()
     val activity = LocalContext.current as Activity
-
-
+    LaunchedEffect(key1 = uiState, block = {
+        if(uiState.userAuthState == LoginViewModel.UserAuthState.USER_REGISTERED){
+            navController.navigate(Screen.GameRoomScreen.route)
+        }
+    })
+    val currentUser = Firebase.auth.currentUser
+//    if(currentUser != null){
+//        viewModel.mobileNumber = currentUser.phoneNumber.toString()
+//        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
+//    }
 
     Column(Modifier.fillMaxSize(),
     verticalArrangement = Arrangement.Center,
@@ -43,11 +49,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
             LoginViewModel.UserAuthState.OTP_SENT ->{
                 VerifyMobileNumber(viewModel)
             }
-            LoginViewModel.UserAuthState.USER_REGISTERED -> {
-                navController.navigate(Screen.GameRoomScreen.route)
-            }
             LoginViewModel.UserAuthState.LOGIN_STATE ->{
-                viewModel.state = viewModel.state.copy(userAuthState =  LoginViewModel.UserAuthState.LOGIN_STATE)
                 RegisterMobileNumber(viewModel,navController)
             }
             LoginViewModel.UserAuthState.REGISTER_USER_STATE -> {
@@ -56,6 +58,7 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
             LoginViewModel.UserAuthState.WRONG_OTP -> {
 
             }
+            else -> Unit
         }
     }
 
@@ -86,12 +89,11 @@ fun RegisterMobileNumber(viewModel: LoginViewModel,navController: NavHostControl
     })
     Spacer(modifier = Modifier.height(10.dp))
     Button(onClick = {
-        navController.navigate(Screen.GameRoomScreen.route)
-//        viewModel.apply {
-//            mobileNumber = mobileNumberField
-//            userName = userNameField
-//        }
-//        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
+        viewModel.apply {
+            mobileNumber = mobileNumberField
+            userName = userNameField
+        }
+        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
     }) {
         Text(text = "Login")
     }
@@ -128,7 +130,6 @@ fun VerifyMobileNumber(viewModel: LoginViewModel){
 
 
 private fun registerMobileNumber(activity: Activity,viewModel: LoginViewModel){
-    Log.i(TAG, "registerMobileNumber: CLICKED")
     val options = PhoneAuthOptions.newBuilder(Firebase.auth)
         .setPhoneNumber(viewModel.mobileNumber)       // Phone number to verify
         .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
