@@ -30,7 +30,6 @@ class LoginViewModel @Inject constructor(
 
     private val authRepository : AuthRepository = AuthRepositoryImpl(Firebase.firestore)
 
-    var navigateToUi  by mutableStateOf(Screen.SZero.route)
 
     sealed class LoginScreenAction{
         object OnLogin : LoginScreenAction()
@@ -53,7 +52,8 @@ class LoginViewModel @Inject constructor(
     private var _state : MutableStateFlow<LoginState> = MutableStateFlow(LoginState(UserAuthState.LOGIN_STATE))
     val state = _state.asStateFlow()
 
-    val navigationUi : MutableSharedFlow<LoginState> = MutableSharedFlow()
+    private var _navigationUi : MutableSharedFlow<LoginState> = MutableSharedFlow()
+    val navigationUi = _navigationUi.asSharedFlow()
 
 
     fun savePlayerData(player: Player){
@@ -73,7 +73,7 @@ class LoginViewModel @Inject constructor(
                 if(player != null){
                     //To Game Screen
                     savePlayerData(player)
-                    navigationUi.emit(LoginState(UserAuthState.USER_REGISTERED))
+                    _navigationUi.emit(LoginState(UserAuthState.USER_REGISTERED))
                 }
             }.launchIn(viewModelScope)
         }
@@ -87,7 +87,7 @@ class LoginViewModel @Inject constructor(
                     if(player != null){
                         //To Game Screen
                         savePlayerData(player)
-                        navigationUi.emit(LoginState(UserAuthState.USER_REGISTERED))
+                        _navigationUi.emit(LoginState(UserAuthState.USER_REGISTERED))
                     }
                 }.launchIn(viewModelScope)
             }
