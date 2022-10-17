@@ -15,4 +15,10 @@ interface PlayerDao {
 
     @Query("SELECT * FROM player")
     fun getPlayerData() : Flow<Player>
+
+    @Query("SELECT * FROM player")
+    fun getPlayerObject() : Player?
+
+    @Query("DELETE FROM player")
+    fun deleteCurrentPlayerData()
 }
