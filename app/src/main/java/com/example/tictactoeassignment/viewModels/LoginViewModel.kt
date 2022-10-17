@@ -16,9 +16,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,19 +35,25 @@ class LoginViewModel @Inject constructor(
     sealed class LoginScreenAction{
         object OnLogin : LoginScreenAction()
         object OnRegister : LoginScreenAction()
+        object OnNewRegister : LoginScreenAction()
+        object OnNewLogin : LoginScreenAction()
+        object OnSuccessfulRegister : LoginScreenAction()
         object OnOtpSend : LoginScreenAction()
         object WrongOtp : LoginScreenAction()
     }
 
     enum class UserAuthState{
-        OTP_SENT,USER_REGISTERED,LOGIN_STATE,REGISTER_USER_STATE,WRONG_OTP
+        OTP_SENT,USER_REGISTERED,LOGIN_STATE,NEW_REGISTER_STATE,REGISTER_USER_STATE,WRONG_OTP
     }
 
     data class LoginState(
         val userAuthState: UserAuthState = UserAuthState.LOGIN_STATE
     )
 
-    var state : MutableStateFlow<LoginState> = MutableStateFlow(LoginState(UserAuthState.LOGIN_STATE))
+    private var _state : MutableStateFlow<LoginState> = MutableStateFlow(LoginState(UserAuthState.LOGIN_STATE))
+    val state = _state.asStateFlow()
+
+    val navigationUi : MutableSharedFlow<LoginState> = MutableSharedFlow()
 
 
     fun savePlayerData(player: Player){
@@ -58,6 +62,22 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    init {
+        checkAndAutoSignInCurrentUser()
+    }
+
+    private fun checkAndAutoSignInCurrentUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentPlayerId = playerRepository.getCurrentPlayerId()
+            authRepository.onLoginIn(currentPlayerId).onEach {player->
+                if(player != null){
+                    //To Game Screen
+                    savePlayerData(player)
+                    navigationUi.emit(LoginState(UserAuthState.USER_REGISTERED))
+                }
+            }.launchIn(viewModelScope)
+        }
+    }
 
 
     fun onAction(loginScreenAction: LoginScreenAction){
@@ -67,24 +87,16 @@ class LoginViewModel @Inject constructor(
                     if(player != null){
                         //To Game Screen
                         savePlayerData(player)
-                        state.value = state.value.copy(
-                            userAuthState = UserAuthState.USER_REGISTERED
-                        )
-                    }else{
-                        state.value = state.value.copy(
-                            userAuthState = UserAuthState.REGISTER_USER_STATE
-                        )
+                        navigationUi.emit(LoginState(UserAuthState.USER_REGISTERED))
                     }
                 }.launchIn(viewModelScope)
-
             }
             LoginScreenAction.OnOtpSend -> {
-                state.value = state.value.copy(
+                _state.value = _state.value.copy(
                     userAuthState = UserAuthState.OTP_SENT
                 )
             }
-            is LoginScreenAction.OnRegister -> {
-                Log.i(TAG, "onAction: REGISTER ${mobileNumber}  ${userName}")
+            is LoginScreenAction.OnSuccessfulRegister -> {
                 createNewUser(
                     Player(
                         _id = mobileNumber,
@@ -95,22 +107,36 @@ class LoginViewModel @Inject constructor(
                 )
             }
             LoginScreenAction.WrongOtp -> {
-                state.value = state.value.copy(
+                _state.value = _state.value.copy(
                     userAuthState = UserAuthState.WRONG_OTP
+                )
+            }
+            LoginScreenAction.OnNewRegister -> {
+                _state.value = _state.value.copy(
+                    userAuthState = UserAuthState.NEW_REGISTER_STATE
+                )
+            }
+            LoginScreenAction.OnNewLogin -> {
+                _state.value = _state.value.copy(
+                    userAuthState = UserAuthState.LOGIN_STATE
+                )
+            }
+            LoginScreenAction.OnRegister -> {
+                _state.value = _state.value.copy(
+                    userAuthState = UserAuthState.REGISTER_USER_STATE
                 )
             }
         }
     }
 
-    fun createNewUser(player : Player){
+    private fun createNewUser(player : Player){
         val db = Firebase.firestore
         db.collection("players").document(player.mobileNumber)
             .set(player)
             .addOnSuccessListener { documentReference ->
-                state.value = state.value.copy(
+                _state.value = _state.value.copy(
                     userAuthState = UserAuthState.USER_REGISTERED
                 )
-
             }
             .addOnFailureListener { e ->
 
