@@ -120,9 +120,9 @@ fun GameScreen(
                                 enter = scaleIn(tween(1000))
                             ){
                                 if (boardCellValue == BoardCellValue.CIRCLE.name) {
-                                    Circle()
+                                    CircleAnimation()
                                 } else if (boardCellValue == BoardCellValue.CROSS.name) {
-                                    Cross()
+                                    CrossAnimation()
                                 }
                             }
 
