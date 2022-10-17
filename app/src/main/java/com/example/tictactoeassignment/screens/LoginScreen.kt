@@ -2,6 +2,7 @@ package com.example.tictactoeassignment.screens
 
 import android.app.Activity
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -31,16 +32,17 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 
     val uiState by viewModel.state.collectAsState()
     val activity = LocalContext.current as Activity
-    LaunchedEffect(key1 = uiState, block = {
-        if(uiState.userAuthState == LoginViewModel.UserAuthState.USER_REGISTERED){
+    LaunchedEffect(key1 = Unit, block = {
+        viewModel.navigationUi.collect{
             navController.navigate(Screen.GameRoomScreen.route)
         }
     })
+
     val currentUser = Firebase.auth.currentUser
-//    if(currentUser != null){
-//        viewModel.mobileNumber = currentUser.phoneNumber.toString()
-//        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
-//    }
+    if(currentUser != null){
+        viewModel.mobileNumber = currentUser.phoneNumber.toString()
+        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
+    }
 
     Column(Modifier.fillMaxSize(),
     verticalArrangement = Arrangement.Center,
@@ -50,13 +52,16 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
                 VerifyMobileNumber(viewModel)
             }
             LoginViewModel.UserAuthState.LOGIN_STATE ->{
-                RegisterMobileNumber(viewModel,navController)
+                LogInWithMobileNumber(viewModel = viewModel)
             }
             LoginViewModel.UserAuthState.REGISTER_USER_STATE -> {
                 registerMobileNumber(activity = activity, viewModel)
             }
             LoginViewModel.UserAuthState.WRONG_OTP -> {
 
+            }
+            LoginViewModel.UserAuthState.NEW_REGISTER_STATE -> {
+                RegisterMobileNumber(viewModel)
             }
             else -> Unit
         }
@@ -65,7 +70,38 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavHostController){
 }
 
 @Composable
-fun RegisterMobileNumber(viewModel: LoginViewModel,navController: NavHostController){
+fun LogInWithMobileNumber(viewModel: LoginViewModel){
+
+    var mobileNumberField by remember {
+        mutableStateOf("")
+    }
+
+
+    Text(text = "Welcome!")
+    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(10.dp))
+    Text(text = "Please enter your mobile number!", fontSize = 8.sp)
+    Spacer(modifier = Modifier.height(4.dp))
+    TextField(value = mobileNumberField, onValueChange = {
+        mobileNumberField = it
+    })
+    Spacer(modifier = Modifier.height(10.dp))
+    Button(onClick = {
+        viewModel.apply {
+            mobileNumber = "+91$mobileNumberField"
+        }
+        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
+    }) {
+        Text(text = "Login")
+    }
+    Spacer(modifier = Modifier.height(10.dp))
+    Text(text = "Register Now", modifier = Modifier.clickable {
+        viewModel.onAction(LoginViewModel.LoginScreenAction.OnNewRegister)
+    })
+}
+
+@Composable
+fun RegisterMobileNumber(viewModel: LoginViewModel){
     var userNameField by remember {
         mutableStateOf("")
     }
@@ -85,7 +121,7 @@ fun RegisterMobileNumber(viewModel: LoginViewModel,navController: NavHostControl
     Text(text = "Please enter your mobile number!", fontSize = 8.sp)
     Spacer(modifier = Modifier.height(4.dp))
     TextField(value = mobileNumberField, onValueChange = {
-        mobileNumberField = it
+        mobileNumberField = "+91$mobileNumberField"
     })
     Spacer(modifier = Modifier.height(10.dp))
     Button(onClick = {
@@ -93,10 +129,14 @@ fun RegisterMobileNumber(viewModel: LoginViewModel,navController: NavHostControl
             mobileNumber = mobileNumberField
             userName = userNameField
         }
-        viewModel.onAction(LoginViewModel.LoginScreenAction.OnLogin)
+        viewModel.onAction(LoginViewModel.LoginScreenAction.OnRegister)
     }) {
-        Text(text = "Login")
+        Text(text = "Register")
     }
+    Spacer(modifier = Modifier.height(10.dp))
+    Text(text = "Login Now", modifier = Modifier.clickable {
+        viewModel.onAction(LoginViewModel.LoginScreenAction.OnNewLogin)
+    })
 }
 
 @Composable
@@ -105,11 +145,8 @@ fun VerifyMobileNumber(viewModel: LoginViewModel){
     var otpField by remember {
         mutableStateOf("")
     }
-    var mobileNumberField by remember {
-        mutableStateOf("")
-    }
 
-    val navigateToUi =  viewModel.navigateToUi
+
     Text(text = "Welcome! Please register yourself")
     Spacer(modifier = Modifier.height(10.dp))
     Text(text = "Please enter your otp!", fontSize = 8.sp)
@@ -124,7 +161,7 @@ fun VerifyMobileNumber(viewModel: LoginViewModel){
             signInWithPhoneAuthCredential(activity,credential,viewModel)
         }
     }) {
-        Text(text = "Login")
+        Text(text = "Verify")
     }
 }
 
@@ -162,7 +199,7 @@ private fun signInWithPhoneAuthCredential(activity: Activity,credential: PhoneAu
             if (task.isSuccessful) {
                 Log.i(TAG, "signInWithPhoneAuthCredential: successfull")
                 // Sign in success, update UI with the signed-in user's informationz
-                viewModel.onAction(LoginViewModel.LoginScreenAction.OnRegister)
+                viewModel.onAction(LoginViewModel.LoginScreenAction.OnSuccessfulRegister)
 
                 val user = task.result?.user
             } else {
