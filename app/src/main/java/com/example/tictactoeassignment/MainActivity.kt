@@ -7,8 +7,6 @@ import androidx.activity.viewModels
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.tictactoeassignment.navigation.SetupNavGraph
-import com.example.tictactoeassignment.screens.GameScreen
-import com.example.tictactoeassignment.screens.LoginScreen
 import com.example.tictactoeassignment.ui.theme.TicTacToeAssignmentTheme
 import com.example.tictactoeassignment.viewModels.GameLobbyViewModel
 import com.example.tictactoeassignment.viewModels.GameRoomViewModel
@@ -39,19 +37,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    public override fun onStart() {
-        super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
-//        if(currentUser != null){
-//            setContent {
-//                TicTacToeAssignmentTheme {
-//                    val loginViewModel = viewModel<LoginViewModel>()
-//                    LoginScreen(viewModel = loginViewModel)
-//                }
-//            }
-//        }
-    }
 }
+
 
