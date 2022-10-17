@@ -13,5 +13,8 @@ class PlayerRepositoryImpl @Inject constructor(
     }
 
     override fun getPlayerData() = playerDao.getPlayerData()
+    override suspend fun getCurrentPlayerId() =  playerDao.getPlayerObject()?._id.toString()
+    override suspend fun deleteCurrentPlayerData()  = playerDao.deleteCurrentPlayerData()
+
 
 }
