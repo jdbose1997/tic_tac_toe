@@ -2,6 +2,7 @@ package com.example.tictactoeassignment.viewModels
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameRoom
@@ -9,10 +10,12 @@ import com.example.data.model.Player
 import com.example.domain.useCases.FetchGameRoomsUseCase
 import com.example.domain.useCases.GetCurrentPlayerDataUseCase
 import com.example.domain.useCases.JoinGameRoomUseCase
+import com.example.domain.useCases.LogoutCurrentUserUseCase
 import com.example.tictactoeassignment.Constant.TAG
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,14 +27,36 @@ import javax.inject.Inject
 class GameRoomViewModel @Inject constructor(
     private val getCurrentPlayerDataUseCase: GetCurrentPlayerDataUseCase,
     private val fetchGameRoomsUseCase: FetchGameRoomsUseCase,
-    private val joinGameRoomUseCase: JoinGameRoomUseCase
+    private val joinGameRoomUseCase: JoinGameRoomUseCase,
+    private val logoutCurrentUserUseCase: LogoutCurrentUserUseCase
 ): ViewModel() {
+    private val _errorState : MutableStateFlow<String> = MutableStateFlow("")
+    val errorState = _errorState.asStateFlow()
+
+    var state  = mutableStateOf(UiState())
+
+    data class UiState(val uiActions: GameRoomScreenAction = GameRoomScreenAction.SZero)
+
+    sealed class GameRoomScreenAction{
+        object OnCreateRoom : GameRoomScreenAction()
+        object OnLogout : GameRoomScreenAction()
+        object SZero : GameRoomScreenAction()
+    }
+
+
 
     var roomList : MutableStateFlow<List<GameRoom>> = MutableStateFlow(emptyList())
     private var player : Player ?= null
 
     init {
         fetchPlayerObject()
+    }
+
+    fun onAction(gameRoomScreenAction: GameRoomScreenAction){
+        state.value = state.value.copy(
+           uiActions = gameRoomScreenAction
+       )
+
     }
 
     private fun fetchPlayerObject(){
@@ -66,13 +91,17 @@ class GameRoomViewModel @Inject constructor(
     }
 
 
-    fun createNewGameRoom(){
+    fun createNewGameRoom(roomName : String){
+        if(roomName.isEmpty()){
+            _errorState.value = "Please enter room name"
+            return
+        }
         val db = Firebase.firestore
         val roomId = UUID.randomUUID().toString()
         db.collection("game_room").document(roomId)
             .set(GameRoom(
                 _roomId=roomId,
-                roomName = "TEST ${Random().nextInt()}",
+                roomName = roomName,
                 currentPlayers = 0,
                 players = arrayListOf()
             ))
@@ -89,6 +118,12 @@ class GameRoomViewModel @Inject constructor(
             if(it._id == currentPlayerId) return true
         }
         return false
+    }
+
+    fun logOutCurrentUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            logoutCurrentUserUseCase()
+        }
     }
 
 }
