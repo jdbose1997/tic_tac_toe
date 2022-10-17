@@ -137,12 +137,7 @@ fun GameScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                AnimatedVisibility(
-                    visible = state.hasWon,
-                    enter = fadeIn(tween(2000))
-                ){
-                    DrawVictoryLine(state = state)
-                }
+                DrawVictoryLine(state = state)
             }
         }
         Row(

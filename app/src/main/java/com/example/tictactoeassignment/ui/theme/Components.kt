@@ -59,104 +59,173 @@ fun BoardBase() {
 
 @Composable
 fun WinVerticalLine1() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
+
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
-            start = Offset(x = size.width*1/6, y = 0f),
-            end = Offset(x = size.width*1/6, y = size.height)
+            start = Offset(x = size.width*1/6 , y = 0f),
+            end = Offset(x = size.width*1/6, y = size.height * animVal.value)
         )
     }
 }
 
 @Composable
 fun WinVerticalLine2() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
+
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
             start = Offset(x = size.width*3/6, y = 0f),
-            end = Offset(x = size.width*3/6, y = size.height)
+            end = Offset(x = size.width*3/6, y = size.height * animVal.value)
         )
     }
 }
 
 @Composable
 fun WinVerticalLine3() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
+
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
             start = Offset(x = size.width*5/6, y = 0f),
-            end = Offset(x = size.width*5/6, y = size.height)
+            end = Offset(x = size.width*5/6, y = size.height * animVal.value)
         )
     }
 }
 
 @Composable
 fun WinHorizontalLine1() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
             start = Offset(x = 0f, y = size.height*1/6),
-            end = Offset(x = size.width, y = size.height*1/6)
+            end = Offset(x = size.width * animVal.value, y = size.height*1/6)
         )
     }
 }
 
 @Composable
 fun WinHorizontalLine2() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
             start = Offset(x = 0f, y = size.height*3/6),
-            end = Offset(x = size.width, y = size.height*3/6)
+            end = Offset(x = size.width * animVal.value, y = size.height*3/6)
         )
     }
 }
 
 @Composable
 fun WinHorizontalLine3() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
             start = Offset(x = 0f, y = size.height*5/6),
-            end = Offset(x = size.width, y = size.height*5/6)
+            end = Offset(x = size.width * animVal.value, y = size.height*5/6)
         )
     }
 }
 
 @Composable
 fun WinDiagonalLine1() {
+    val leftDiagonalAnimVal = remember { Animatable(0f) }
+    LaunchedEffect(leftDiagonalAnimVal) {
+        leftDiagonalAnimVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
+
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
             start = Offset(x = 0f, y = 0f),
-            end = Offset(x = size.width, y = size.height)
+            end = Offset(x = leftDiagonalAnimVal.value * size.width, leftDiagonalAnimVal.value * size.height)
         )
     }
 }
 
 @Composable
 fun WinDiagonalLine2() {
+    val animVal = remember { Animatable(0f) }
+    LaunchedEffect(animVal) {
+        animVal.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
+
+    val rightDiagonalAnimVal = remember { Animatable(1f) }
+    LaunchedEffect(rightDiagonalAnimVal) {
+        rightDiagonalAnimVal.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        )
+    }
+
     Canvas(modifier = Modifier.size(300.dp)) {
         drawLine(
             color = Color.Red,
             strokeWidth = 10f,
             cap = StrokeCap.Round,
-            start = Offset(x = 0f, y = size.height),
-            end = Offset(x = size.width, y = 0f)
+            start = Offset(x = size.width , y = 0f),
+            end = Offset(x = size.width * rightDiagonalAnimVal.value, y = size.height * animVal.value)
         )
     }
 }
