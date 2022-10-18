@@ -26,7 +26,8 @@ class GameRoomViewModel @Inject constructor(
     private val fetchGameRoomsUseCase: FetchGameRoomsUseCase,
     private val joinGameRoomUseCase: JoinGameRoomUseCase,
     private val logoutCurrentUserUseCase: LogoutCurrentUserUseCase,
-    private val deleteGameRoomByIdUseCase: DeleteGameRoomByIdUseCase
+    private val deleteGameRoomByIdUseCase: DeleteGameRoomByIdUseCase,
+    private val deleteGameSessionByIdUseCase: DeleteGameSessionByIdUseCase
 ): ViewModel() {
     private val _errorState : MutableStateFlow<String> = MutableStateFlow("")
     val errorState = _errorState.asStateFlow()
@@ -127,7 +128,11 @@ class GameRoomViewModel @Inject constructor(
     }
 
     fun deleteGameRoom(roomId: String) {
-        deleteGameRoomByIdUseCase(roomId=roomId).launchIn(viewModelScope)
+        deleteGameRoomByIdUseCase(roomId=roomId).onEach {
+            if(it){
+                deleteGameSessionByIdUseCase(roomId).launchIn(viewModelScope)
+            }
+        }.launchIn(viewModelScope)
     }
 
 }

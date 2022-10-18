@@ -182,4 +182,17 @@ class GameRepositoryImpl @Inject constructor(
             awaitClose { close() }
         }
     }
+
+    override fun deleteGameSessionById(sessionId: String): Flow<Boolean> {
+        return callbackFlow {
+            try {
+                firestore.collection("game_session").document(sessionId).delete().addOnCompleteListener {
+                    trySend(true)
+                }
+            }catch (e : Exception){
+                close()
+            }
+            awaitClose { close() }
+        }
+    }
 }

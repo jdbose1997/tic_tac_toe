@@ -13,4 +13,5 @@ interface GameRepository {
     fun observeRematch(gameSessionId : String): Flow<RematchCall>
     fun joinGame(gameSession: GameSession,sessionId: String,playerId : String)
     fun isAnyGameSessionExistWithTheSessionId(sessionId: String) : Flow<Boolean>
+    fun deleteGameSessionById(sessionId : String) : Flow<Boolean>
 }
