@@ -8,10 +8,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.tictactoeassignment.navigation.SetupNavGraph
 import com.example.tictactoeassignment.ui.theme.TicTacToeAssignmentTheme
-import com.example.tictactoeassignment.viewModels.GameLobbyViewModel
-import com.example.tictactoeassignment.viewModels.GameRoomViewModel
-import com.example.tictactoeassignment.viewModels.GameViewModel
-import com.example.tictactoeassignment.viewModels.LoginViewModel
+import com.example.tictactoeassignment.viewmodels.GameLobbyViewModel
+import com.example.tictactoeassignment.viewmodels.GameRoomViewModel
+import com.example.tictactoeassignment.viewmodels.GameViewModel
+import com.example.tictactoeassignment.viewmodels.LoginViewModel
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth

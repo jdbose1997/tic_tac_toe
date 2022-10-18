@@ -1,4 +1,4 @@
-package com.example.tictactoeassignment.viewModels
+package com.example.tictactoeassignment.viewmodels
 
 import android.annotation.SuppressLint
 import android.util.Log

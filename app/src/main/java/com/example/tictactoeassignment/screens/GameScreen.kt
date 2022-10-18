@@ -1,10 +1,6 @@
 package com.example.tictactoeassignment.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +27,7 @@ import com.example.domain.GameState
 import com.example.domain.PlayerAction
 import com.example.domain.VictoryType
 import com.example.tictactoeassignment.ui.theme.*
-import com.example.tictactoeassignment.viewModels.GameViewModel
+import com.example.tictactoeassignment.viewmodels.GameViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
@@ -115,15 +111,10 @@ fun GameScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            AnimatedVisibility(
-                                visible = boardCellValue != BoardCellValue.NONE.name,
-                                enter = scaleIn(tween(1000))
-                            ){
-                                if (boardCellValue == BoardCellValue.CIRCLE.name) {
-                                    CircleAnimation()
-                                } else if (boardCellValue == BoardCellValue.CROSS.name) {
-                                    CrossAnimation()
-                                }
+                            if (boardCellValue == BoardCellValue.CIRCLE.name) {
+                                CircleAnimation()
+                            } else if (boardCellValue == BoardCellValue.CROSS.name) {
+                                CrossAnimation()
                             }
 
                         }

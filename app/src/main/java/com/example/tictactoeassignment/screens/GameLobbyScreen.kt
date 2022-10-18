@@ -12,8 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.tictactoeassignment.navigation.Screen
-import com.example.tictactoeassignment.viewModels.GameLobbyViewModel
+import com.example.tictactoeassignment.viewmodels.GameLobbyViewModel
 
 @Composable
 fun GameLobbyScreen(navHostController: NavHostController,viewModel : GameLobbyViewModel,roomId : String){

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.data.model.GameRoom
 import com.example.tictactoeassignment.navigation.Screen
-import com.example.tictactoeassignment.viewModels.GameRoomViewModel
+import com.example.tictactoeassignment.viewmodels.GameRoomViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable

@@ -1,6 +1,5 @@
 package com.example.tictactoeassignment.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -11,10 +10,10 @@ import com.example.tictactoeassignment.screens.GameLobbyScreen
 import com.example.tictactoeassignment.screens.GameRoomScreen
 import com.example.tictactoeassignment.screens.GameScreen
 import com.example.tictactoeassignment.screens.LoginScreen
-import com.example.tictactoeassignment.viewModels.GameLobbyViewModel
-import com.example.tictactoeassignment.viewModels.GameRoomViewModel
-import com.example.tictactoeassignment.viewModels.GameViewModel
-import com.example.tictactoeassignment.viewModels.LoginViewModel
+import com.example.tictactoeassignment.viewmodels.GameLobbyViewModel
+import com.example.tictactoeassignment.viewmodels.GameRoomViewModel
+import com.example.tictactoeassignment.viewmodels.GameViewModel
+import com.example.tictactoeassignment.viewmodels.LoginViewModel
 
 
 @Composable

@@ -1,6 +1,5 @@
-package com.example.tictactoeassignment.viewModels
+package com.example.tictactoeassignment.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameSession

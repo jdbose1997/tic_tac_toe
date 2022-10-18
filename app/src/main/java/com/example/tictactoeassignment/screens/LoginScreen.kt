@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.tictactoeassignment.Constant.TAG
 import com.example.tictactoeassignment.navigation.Screen
-import com.example.tictactoeassignment.viewModels.LoginViewModel
+import com.example.tictactoeassignment.viewmodels.LoginViewModel
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
