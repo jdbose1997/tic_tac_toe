@@ -10,4 +10,5 @@ interface GameRoomRepository {
     fun fetchGameRoomUsingId(roomdId : String) : Flow<GameRoom>
     fun checkIfUserCanJoinRoom(roomId: String) : Flow<Boolean>
     fun joinGameRoom(gameRoom: GameRoom,roomId : String): Flow<Boolean>
+    fun deleteGameRoomById(roomId : String)  : Flow<Boolean>
 }

@@ -7,10 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.GameRoom
 import com.example.data.model.Player
-import com.example.domain.useCases.FetchGameRoomsUseCase
-import com.example.domain.useCases.GetCurrentPlayerDataUseCase
-import com.example.domain.useCases.JoinGameRoomUseCase
-import com.example.domain.useCases.LogoutCurrentUserUseCase
+import com.example.domain.useCases.*
 import com.example.tictactoeassignment.Constant.TAG
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -28,7 +25,8 @@ class GameRoomViewModel @Inject constructor(
     private val getCurrentPlayerDataUseCase: GetCurrentPlayerDataUseCase,
     private val fetchGameRoomsUseCase: FetchGameRoomsUseCase,
     private val joinGameRoomUseCase: JoinGameRoomUseCase,
-    private val logoutCurrentUserUseCase: LogoutCurrentUserUseCase
+    private val logoutCurrentUserUseCase: LogoutCurrentUserUseCase,
+    private val deleteGameRoomByIdUseCase: DeleteGameRoomByIdUseCase
 ): ViewModel() {
     private val _errorState : MutableStateFlow<String> = MutableStateFlow("")
     val errorState = _errorState.asStateFlow()
@@ -74,6 +72,7 @@ class GameRoomViewModel @Inject constructor(
                 val job = async {
                     gameRoomList.forEach {
                         it.isTheCurrentUserAlredyJoined = playerAllReadyJoined(it.players,playerId)
+                        it.isCreatedByMe = it.createdBy == playerId
                     }
                     gameRoomList
                 }
@@ -103,7 +102,8 @@ class GameRoomViewModel @Inject constructor(
                 _roomId=roomId,
                 roomName = roomName,
                 currentPlayers = 0,
-                players = arrayListOf()
+                players = arrayListOf(),
+                createdBy = player?._id.toString()
             ))
             .addOnSuccessListener { documentReference ->
                  Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference}")
@@ -124,6 +124,10 @@ class GameRoomViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             logoutCurrentUserUseCase()
         }
+    }
+
+    fun deleteGameRoom(roomId: String) {
+        deleteGameRoomByIdUseCase(roomId=roomId).launchIn(viewModelScope)
     }
 
 }

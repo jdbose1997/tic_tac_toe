@@ -77,6 +77,23 @@ class GameRoomRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun deleteGameRoomById(roomId: String): Flow<Boolean> {
+        return  callbackFlow {
+            fireStoreCollection.collection("game_room")
+                .document(roomId)
+                .delete().addOnSuccessListener {
+                    trySend(true)
+                    close()
+                }.addOnCanceledListener {
+                    trySend(false)
+                    close()
+                }
+            awaitClose{
+                close()
+            }
+        }
+    }
+
 
     override fun checkIfUserCanJoinRoom(roomId: String) : Flow<Boolean> {
        return callbackFlow {
