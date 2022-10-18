@@ -20,16 +20,25 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun GameRoomScreen(navHostController: NavHostController,viewModel: GameRoomViewModel){
-    val uiState by viewModel.state
-    val context = LocalContext.current as Context
+
+    val context = LocalContext.current
 
     val listOfGameRoom = viewModel.roomList.collectAsState().value
-    when(uiState.uiActions){
-        GameRoomViewModel.GameRoomScreenAction.OnCreateRoom -> {
-            ShowCreateRoomAlertDialog(viewModel = viewModel)
+
+    LaunchedEffect(key1 = Unit, block = {
+        viewModel.uiActions.collect{actions->
+            when(actions){
+                GameRoomViewModel.GameRoomScreenAction.OnCreateRoom -> {
+                    viewModel.openDialog.value = true
+                }
+                GameRoomViewModel.GameRoomScreenAction.OnLogout -> {
+                   viewModel.openLogoutDialog.value = true
+                }
+            }
         }
-        else -> Unit
-    }
+    })
+
+
     Column(
         Modifier
             .fillMaxSize()
@@ -49,14 +58,13 @@ fun GameRoomScreen(navHostController: NavHostController,viewModel: GameRoomViewM
         }
         Spacer(modifier = Modifier.height(10.dp))
         Button(onClick = {
-            FirebaseAuth.getInstance().signOut()
-            viewModel.logOutCurrentUser()
-            navHostController.navigate(Screen.LoginScreen.route)
-            Toast.makeText(context,"Logged out!",Toast.LENGTH_SHORT).show()
+          viewModel.onAction(GameRoomViewModel.GameRoomScreenAction.OnLogout)
         }, modifier = Modifier.fillMaxWidth()) {
             Text(text = "Log Out")
         }
     }
+    ShowCreateRoomAlertDialog(viewModel = viewModel)
+    ShowDeleteRoomAlertDialog(viewModel = viewModel, context = context,navHostController=navHostController)
 }
 
 @Composable
@@ -65,7 +73,7 @@ fun RoomCard(navHostController: NavHostController,gameRoom : GameRoom,viewModel:
        Text(text = "Room Name : ${gameRoom.roomName}" )
        if(gameRoom.isCreatedByMe){
            IconButton(onClick = {
-                viewModel.deleteGameRoom(gameRoom._roomId)
+               viewModel.deleteGameRoom(gameRoom._roomId.toString())
            }) {
                Icon(
                    Icons.Filled.Delete,
@@ -93,7 +101,11 @@ fun RoomCard(navHostController: NavHostController,gameRoom : GameRoom,viewModel:
 
 @Composable
 fun ShowCreateRoomAlertDialog(viewModel: GameRoomViewModel){
-    val openDialog = remember { mutableStateOf(true) }
+
+    val openDialog = remember {
+        viewModel.openDialog
+    }
+
     var roomNameField by remember {
         mutableStateOf("")
     }
@@ -101,7 +113,7 @@ fun ShowCreateRoomAlertDialog(viewModel: GameRoomViewModel){
     if (openDialog.value) {
         AlertDialog(
             onDismissRequest = {
-                openDialog.value = false
+                viewModel.openDialog.value = false
             },
             title = {
                 Text(text = "Create New Game Room")
@@ -129,9 +141,11 @@ fun ShowCreateRoomAlertDialog(viewModel: GameRoomViewModel){
                             .weight(1f),
                         onClick = {
                             viewModel.createNewGameRoom(roomNameField)
+                            viewModel.openDialog.value = false
+                            roomNameField = ""
                         }
                     ) {
-                        Text("Play")
+                        Text("Create")
                     }
 
                     Button(
@@ -139,7 +153,67 @@ fun ShowCreateRoomAlertDialog(viewModel: GameRoomViewModel){
                             .wrapContentWidth()
                             .weight(1f),
                         onClick = {
+                            viewModel.openDialog.value = false
+                            roomNameField = ""
+                        }
+                    ) {
+                        Text("Dismiss")
+                    }
+                }
+            }
+        )
+    }
+}
 
+
+@Composable
+fun ShowDeleteRoomAlertDialog(viewModel: GameRoomViewModel,context: Context,navHostController: NavHostController){
+
+    val openDialog = remember {
+        viewModel.openLogoutDialog
+    }
+
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.openLogoutDialog.value = false
+            },
+            title = {
+                Text(text = "Logout")
+            },
+            text = {
+                Column {
+                    Text("Do you want to logout?")
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+            },
+            buttons = {
+                Row(
+                    modifier = Modifier.padding(all = 8.dp),
+                    horizontalArrangement =  Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .weight(1f),
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
+                            viewModel.logOutCurrentUser()
+                            navHostController.navigate(Screen.LoginScreen.route)
+                            Toast.makeText(context,"Logged out!",Toast.LENGTH_SHORT).show()
+                            viewModel.openLogoutDialog.value = false
+                        }
+                    ) {
+                        Text("Logout")
+                    }
+
+                    Button(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .weight(1f),
+                        onClick = {
+                            viewModel.openLogoutDialog.value = false
                         }
                     ) {
                         Text("Dismiss")

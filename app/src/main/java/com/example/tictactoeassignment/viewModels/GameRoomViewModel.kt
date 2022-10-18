@@ -32,14 +32,20 @@ class GameRoomViewModel @Inject constructor(
     private val _errorState : MutableStateFlow<String> = MutableStateFlow("")
     val errorState = _errorState.asStateFlow()
 
-    var state  = mutableStateOf(UiState())
 
-    data class UiState(val uiActions: GameRoomScreenAction = GameRoomScreenAction.SZero)
+    val openDialog =  mutableStateOf(false)
+    val openLogoutDialog =  mutableStateOf(false)
+
+    private var _uiActions : MutableSharedFlow<GameRoomScreenAction> = MutableSharedFlow()
+    val uiActions = _uiActions.asSharedFlow()
+
+
+
+
 
     sealed class GameRoomScreenAction{
         object OnCreateRoom : GameRoomScreenAction()
         object OnLogout : GameRoomScreenAction()
-        object SZero : GameRoomScreenAction()
     }
 
 
@@ -52,9 +58,9 @@ class GameRoomViewModel @Inject constructor(
     }
 
     fun onAction(gameRoomScreenAction: GameRoomScreenAction){
-        state.value = state.value.copy(
-           uiActions = gameRoomScreenAction
-       )
+        viewModelScope.launch {
+            _uiActions.emit(gameRoomScreenAction)
+        }
 
     }
 
