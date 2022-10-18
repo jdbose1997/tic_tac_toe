@@ -69,8 +69,25 @@ fun GameRoomScreen(navHostController: NavHostController,viewModel: GameRoomViewM
 
 @Composable
 fun RoomCard(navHostController: NavHostController,gameRoom : GameRoom,viewModel: GameRoomViewModel){
-   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-       Text(text = "Room Name : ${gameRoom.roomName}" )
+   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+       Column {
+           Text(text = "Room Name : ${gameRoom.roomName}" )
+           Spacer(modifier = Modifier.height(10.dp))
+           Text(text = "Players : ${gameRoom.currentPlayers}/2" )
+           Spacer(modifier = Modifier.height(10.dp))
+           Button(onClick = {
+               if(gameRoom.isTheCurrentUserAlredyJoined){
+                   navHostController.navigate("game_lobby_screen"+"/${gameRoom._roomId}")
+               }else{
+                   viewModel.addPlayerToGameRoom(
+                       gameRoom._roomId
+                   )
+               }
+           }) {
+               Text(if(gameRoom.isTheCurrentUserAlredyJoined) "Play" else "Join")
+           }
+           Spacer(modifier = Modifier.height(10.dp))
+       }
        if(gameRoom.isCreatedByMe){
            IconButton(onClick = {
                viewModel.deleteGameRoom(gameRoom._roomId.toString())
@@ -82,21 +99,7 @@ fun RoomCard(navHostController: NavHostController,gameRoom : GameRoom,viewModel:
            }
        }
    }
-    Spacer(modifier = Modifier.height(10.dp))
-    Text(text = "Players : ${gameRoom.currentPlayers}/2" )
-    Spacer(modifier = Modifier.height(10.dp))
-    Button(onClick = {
-        if(gameRoom.isTheCurrentUserAlredyJoined){
-            navHostController.navigate("game_lobby_screen"+"/${gameRoom._roomId}")
-        }else{
-            viewModel.addPlayerToGameRoom(
-                gameRoom._roomId
-            )
-        }
-    }) {
-        Text(if(gameRoom.isTheCurrentUserAlredyJoined) "Play" else "Join")
-    }
-    Spacer(modifier = Modifier.height(10.dp))
+
 }
 
 @Composable

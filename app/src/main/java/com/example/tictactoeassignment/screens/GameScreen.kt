@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.example.domain.BoardCellValue
 import com.example.domain.GameState
 import com.example.domain.PlayerAction
@@ -32,9 +31,8 @@ import com.example.tictactoeassignment.viewmodels.GameViewModel
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun GameScreen(
-    navHostController: NavHostController,
     viewModel: GameViewModel,
-    sessionId : String
+    sessionId: String
 ) {
 
     val state = viewModel.state
