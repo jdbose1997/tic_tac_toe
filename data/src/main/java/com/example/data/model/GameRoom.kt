@@ -5,12 +5,16 @@ data class GameRoom(
     val roomName : String,
     var currentPlayers : Int,
     val players : ArrayList<Player>,
-    var isTheCurrentUserAlredyJoined : Boolean = false
+    val createdBy : String,
+    var isTheCurrentUserAlredyJoined : Boolean = false,
+    var isCreatedByMe : Boolean = false
 ){
     constructor() : this(
         "",
         "",
         0,
-        arrayListOf()
+        arrayListOf(),
+        ""
+
     )
 }
