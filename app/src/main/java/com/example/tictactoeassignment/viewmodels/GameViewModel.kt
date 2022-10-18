@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.RematchCall
+import com.example.data.model.repository.GameRepository
 import com.example.domain.BoardCellValue
 import com.example.domain.GameState
 import com.example.domain.PlayerAction
@@ -27,7 +28,6 @@ class GameViewModel @Inject constructor(
     private val acceptRematchUseCase: AcceptRematchUseCase
 ) : ViewModel() {
     private var currentTurn = BoardCellValue.NONE.name
-    private var rematchCall : RematchCall ?= null
 
 
     var state by mutableStateOf(GameState())
@@ -140,6 +140,7 @@ class GameViewModel @Inject constructor(
 
     private fun gameReset() {
         updateCurrentGameBoardUseCase(initialBoardValue,gameSessionId,currentTurn,myUserId)
+
     }
 
     private fun checkForVictory(boardMoveItems : MutableMap<String,String>,boardValue: String): Boolean {
@@ -198,7 +199,6 @@ class GameViewModel @Inject constructor(
 
      fun checkForRematch() {
         observeGameRematchCallsUseCase(gameSessionId).onEach { rematchCall ->
-            Log.i("JAPAN", "checkForRematch: ${rematchCall.requestAcceptedByOtherPlayer}")
             if(rematchCall.playerId == myUserId){
                 if(rematchCall.requestAcceptedByOtherPlayer){
                     gameReset()
